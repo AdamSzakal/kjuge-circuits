@@ -1,0 +1,22 @@
+# Scratch / debug artifacts from the scraping & QA process
+*_preview.png
+desktop_check.png
+mobile_collapsed.png
+mobile_sheet.png
+multiselect_preview.png
+popup_test.png
+stars_preview.png
+
+# Raw HTML captured while reverse-engineering 27crags
+babar.html
+babar_props.json
+babar_text.txt
+crag.html
+marierose.html
+marierose_full.html
+
+# Intermediate matching dump (superseded by links_grades.json)
+matched.json
+
+# OS
+.DS_Store
