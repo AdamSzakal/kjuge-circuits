@@ -1508,5 +1508,27 @@
 ],
 "/crags/valje/routes/valje-noje": [
 "powerful"
+],
+"/crags/kjugekull/routes/forza2": [
+"dyno",
+"technical"
+],
+"/crags/kjugekull/routes/baltazar2": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/brick-ard2": [
+"technical"
+],
+"/crags/kjugekull/routes/ferdinand2": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/matador2": [
+"technical"
+],
+"/crags/kjugekull/routes/skottlinjen2": [
+"pockets",
+"slab"
 ]
 }

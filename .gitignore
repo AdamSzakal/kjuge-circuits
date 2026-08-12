@@ -1,28 +1,26 @@
-# Scratch / debug artifacts from the scraping & QA process
+
+.DS_Store
 *_preview.png
+# Intermediate matching dump (superseded by links_grades.json)
+# OS
+# Raw HTML captured while reverse-engineering 27crags
+# Scratch / debug artifacts from the scraping & QA process
+all_boulder_paths.json
+allgrades_preview.png
+babar_props.json
+babar_text.txt
+babar.html
+crag.html
 desktop_check.png
+marierose_full.html
+marierose.html
+matched.json
 mobile_collapsed.png
 mobile_sheet.png
 multiselect_preview.png
-popup_test.png
-stars_preview.png
-
-# Raw HTML captured while reverse-engineering 27crags
-babar.html
-babar_props.json
-babar_text.txt
-crag.html
-marierose.html
-marierose_full.html
-
-# Intermediate matching dump (superseded by links_grades.json)
-matched.json
-
-# OS
-.DS_Store
-
-tags_new_raw.json
-scrape_new.js
-all_boulder_paths.json
 need_chars_paths.json
-allgrades_preview.png
+popup_test.png
+scrape_new.js
+stars_preview.png
+tags_new_raw.json
+tags_newer_raw.json

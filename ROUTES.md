@@ -5,7 +5,7 @@ Every problem in each PDF list that has a 27crags page is included (unlinked pro
 
 ## Kjugekull | Top 100
 
-- **100 boulders** across **59 sector-stops** — path ≈ **3.10 km**
+- **100 boulders** across **59 sector-stops** — path ≈ **3.13 km**
 - Start: parking @ 56.07347, 14.35950
 
 1. **kjugekull · Caféblocket** — 56.07368,14.36405  _(+283 m cum)_
@@ -53,11 +53,11 @@ Every problem in each PDF list that has a 27crags page is included (unlinked pro
 22. **kjugekull · Block-rocking beat** — 56.07381,14.36859  _(+1405 m cum)_
    - block-rocking-beat (7B)
 23. **kjugekull · Baltazar** — 56.07359,14.36843  _(+1432 m cum)_
-   - aerodynamiten-lag-start (8A)
+   - baltazar (7A+), aerodynamiten-lag-start (8A)
 24. **kjugekull · Lithium** — 56.07329,14.36799  _(+1475 m cum)_
    - mallinjen (6B), lithium (7C), lithium-lag-start (8A)
 25. **kjugekull · Matador** — 56.07323,14.36685  _(+1546 m cum)_
-   - sprickan (L), matador-ss (7C)
+   - sprickan (L), ferdinand (7A+), matador (7A+), matador-ss (7C)
 26. **kjugekull · Uppvärmningen** — 56.07344,14.36665  _(+1572 m cum)_
    - halfoten (L)
 27. **kjugekull · Styv som en fjäder** — 56.07326,14.36556  _(+1642 m cum)_
@@ -84,47 +84,47 @@ Every problem in each PDF list that has a 27crags page is included (unlinked pro
    - daniels-kluriga-sva (6A+)
 38. **kjugekull · Struts är struts** — 56.07593,14.36348  _(+2140 m cum)_
    - struts-ar-struts (6C+)
-39. **kjugekull** — 56.07640,14.36440  _(+2218 m cum)_
-   - skottlinjen (L), baltazar (7A+), brick-ard (7A+), ferdinand (7A+), matador (7A+), forza (7B+)
-40. **kjugekull · Sonic** — 56.07630,14.36362  _(+2268 m cum)_
+39. **kjugekull · Sonic** — 56.07630,14.36362  _(+2182 m cum)_
    - traversen (6C+), fina-areten (7A), sonic (7B+), huggsexa (7C+), sonic-sittstart (8A), huggsexa-sittstart (8A+)
-41. **kjugekull · Rock star** — 56.07683,14.36222  _(+2373 m cum)_
+40. **kjugekull · Rock star** — 56.07683,14.36222  _(+2287 m cum)_
    - rock-star (7A)
-42. **kjugekull · Lippmofvet** — 56.07700,14.36234  _(+2393 m cum)_
+41. **kjugekull · Lippmofvet** — 56.07700,14.36234  _(+2307 m cum)_
    - lippmofvet (5), en-dyna (6A)
-43. **kjugekull · Ostbågen** — 56.07804,14.36151  _(+2520 m cum)_
+42. **kjugekull · Ostbågen** — 56.07804,14.36151  _(+2434 m cum)_
    - ostbagen (5)
-44. **kjugekull · Ängsslabben** — 56.07820,14.36063  _(+2577 m cum)_
+43. **kjugekull · Ängsslabben** — 56.07820,14.36063  _(+2491 m cum)_
    - jag-har-sett-killar-i-fontan-gora-det-har-utan-hander (L)
-45. **kjugekull · Ängsareten** — 56.07851,14.36055  _(+2612 m cum)_
+44. **kjugekull · Ängsareten** — 56.07851,14.36055  _(+2526 m cum)_
    - angsareten (5+), mandomsprovet (6A)
-46. **kjugekull · Imperator** — 56.07876,14.35942  _(+2687 m cum)_
+45. **kjugekull · Imperator** — 56.07876,14.35942  _(+2601 m cum)_
    - anticimex (6B), imperator (7B+)
-47. **kjugekull · Ehmans sittstart** — 56.07914,14.35967  _(+2733 m cum)_
+46. **kjugekull · Ehmans sittstart** — 56.07914,14.35967  _(+2647 m cum)_
    - ehmans-sitstart-6a-kjugekull (6A)
-48. **kjugekull · Lååångsamt, lååångsamt** — 56.07938,14.35997  _(+2765 m cum)_
+47. **kjugekull · Lååångsamt, lååångsamt** — 56.07938,14.35997  _(+2679 m cum)_
    - laaangsamt-laaangsamt (7B)
-49. **kjugekull · Fajers dyno** — 56.07943,14.35996  _(+2771 m cum)_
+48. **kjugekull · Fajers dyno** — 56.07943,14.35996  _(+2684 m cum)_
    - hajfena (5+), fajers-dyno (7A)
-50. **kjugekull · Linds långa linje** — 56.07994,14.35966  _(+2830 m cum)_
-   - linds-langa-linjen (6B+)
-51. **kjugekull · Problemett** — 56.07988,14.35977  _(+2840 m cum)_
+49. **kjugekull · Linds långa linje** — 56.07994,14.35966  _(+2744 m cum)_
+   - linds-langa-linjen (6B+), forza (7B+)
+50. **kjugekull · Skottlinjen** — 56.08049,14.35975  _(+2806 m cum)_
+   - skottlinjen (L)
+51. **kjugekull · Problemett** — 56.07988,14.35977  _(+2874 m cum)_
    - sittett (6B)
-52. **kjugekull · Mr Mantle** — 56.07959,14.36041  _(+2892 m cum)_
+52. **kjugekull · Mr Mantle** — 56.07959,14.36041  _(+2926 m cum)_
    - mr-mantle (6B)
-53. **kjugekull · Glasögonorm** — 56.07925,14.36062  _(+2932 m cum)_
+53. **kjugekull · Glasögonorm** — 56.07925,14.36062  _(+2966 m cum)_
    - glasogonorm (6C)
-54. **kjugekull · Mijares** — 56.07921,14.36063  _(+2935 m cum)_
+54. **kjugekull · Mijares** — 56.07921,14.36063  _(+2970 m cum)_
    - modomsrovet (6A+)
-55. **kjugekull · Monolith** — 56.07918,14.36051  _(+2943 m cum)_
+55. **kjugekull · Monolith** — 56.07918,14.36051  _(+2978 m cum)_
    - monolith (7A+), delikat-i-kvadrat (7B), delikat-spagat (7B)
-56. **kjugekull · Diners Club** — 56.07905,14.36051  _(+2958 m cum)_
+56. **kjugekull · Diners Club** — 56.07905,14.36051  _(+2992 m cum)_
    - diners-club (7A+)
-57. **kjugekull · Kluvna stenen** — 56.07904,14.36065  _(+2967 m cum)_
-   - caspersens-arete (7A+), caspersens-arete-ss (7B+), sick-ard (7C), alla-vill-till-himmelen (7C+)
-58. **kjugekull · Solväggen** — 56.07906,14.36222  _(+3064 m cum)_
+57. **kjugekull · Kluvna stenen** — 56.07904,14.36065  _(+3001 m cum)_
+   - brick-ard (7A+), caspersens-arete (7A+), caspersens-arete-ss (7B+), sick-ard (7C), alla-vill-till-himmelen (7C+)
+58. **kjugekull · Solväggen** — 56.07906,14.36222  _(+3099 m cum)_
    - maha (5+)
-59. **kjugekull · Två hål i en spricka** — 56.07894,14.36275  _(+3100 m cum)_
+59. **kjugekull · Två hål i en spricka** — 56.07894,14.36275  _(+3134 m cum)_
    - tva-hal-i-en-spricka (5)
 
 ## Kjugekull | Hidden gems
