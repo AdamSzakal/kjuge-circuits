@@ -20,3 +20,9 @@ matched.json
 
 # OS
 .DS_Store
+
+tags_new_raw.json
+scrape_new.js
+all_boulder_paths.json
+need_chars_paths.json
+allgrades_preview.png

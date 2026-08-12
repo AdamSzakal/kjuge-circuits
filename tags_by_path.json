@@ -871,5 +871,642 @@
 "/crags/bleaustenen/routes/la-confiance": [
 "technical",
 "slab"
+],
+"/crags/atlas/routes/stappvargen-418315": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/atlas/routes/aurelia": [
+"crimpers",
+"slopers",
+"powerful"
+],
+"/crags/atlas/routes/cassiopeia": [
+"slopers",
+"technical",
+"mental"
+],
+"/crags/atlas/routes/machmadera-sittstart": [
+"crimpers",
+"slopers",
+"technical"
+],
+"/crags/barnakalla/routes/instinkt-417276": [
+"slopers",
+"powerful",
+"technical",
+"mental"
+],
+"/crags/barnakalla/routes/kung-tung-417206": [
+"slopers",
+"crack",
+"powerful",
+"technical"
+],
+"/crags/atlas/routes/machmadera": [
+"crimpers",
+"slopers",
+"technical"
+],
+"/crags/barnakalla/routes/skolden-417309": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/barnakalla/routes/psilobit": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/barnakalla/routes/unlimited-pouwer": [
+"crimpers",
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/bleaustenen/routes/krysopras-sittstart": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/bleaustenen/routes/le-grandeur-assis": [
+"crimpers",
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/bleaustenen/routes/musashi-419247": [
+"crimpers",
+"technical",
+"mental",
+"slab"
+],
+"/crags/cold-steel/routes/cooler-king": [
+"crimpers",
+"technical"
+],
+"/crags/bleaustenen/routes/transcendent-rytmik-419757": [
+"slopers",
+"powerful",
+"technical",
+"mental"
+],
+"/crags/bleaustenen/routes/post-moderne-assis": [
+"crimpers",
+"technical",
+"mental"
+],
+"/crags/bleaustenen/routes/tomohiko-amada": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/hulta/routes/benchmark-7b-ss": [
+"slopers",
+"powerful",
+"technical",
+"mental"
+],
+"/crags/hulta/routes/benchmark": [
+"slopers",
+"technical",
+"mental"
+],
+"/crags/cold-steel/routes/opaque": [
+"slopers",
+"powerful",
+"technical",
+"mental"
+],
+"/crags/hulta/routes/mamma-mu": [
+"slopers",
+"technical",
+"mental"
+],
+"/crags/hulta/routes/kusin-vitamin": [
+"crimpers",
+"technical"
+],
+"/crags/hulta/routes/hetsitt": [
+"crimpers",
+"technical"
+],
+"/crags/hulta/routes/bo-ko": [
+"slopers",
+"powerful",
+"endurance",
+"mental"
+],
+"/crags/hulta/routes/hogmod": [
+"crimpers",
+"powerful",
+"mental"
+],
+"/crags/hulta/routes/tvekampen": [
+"powerful",
+"endurance",
+"technical"
+],
+"/crags/kallsjon/routes/pippi-langstrump-173110": [
+"crimpers",
+"technical"
+],
+"/crags/kallsjon/routes/prussiluskan-ss": [
+"crack",
+"technical"
+],
+"/crags/kallsjon/routes/shangri-la-ss": [
+"powerful",
+"technical"
+],
+"/crags/hulta/routes/luftig-ko-till-nalens-oga": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/2001-en-rymdodysse": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/39-88927": [
+"slopers",
+"powerful"
+],
+"/crags/kjugekull/routes/161452": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/abe-index": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/aerodynamiten-lag-start": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/ahab": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/alkemisten": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/alla-vill-till-himmelen": [
+"powerful",
+"dyno",
+"dangerous"
+],
+"/crags/kjugekull/routes/adamantium": [
+"powerful"
+],
+"/crags/kjugekull/routes/askbollen-ss": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/backlund-blodiga-barnbarn": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/ancestral-soul": [
+"slopers",
+"powerful",
+"mental"
+],
+"/crags/kjugekull/routes/backlunds-blodiga-barn": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/brick-ard": [],
+"/crags/kjugekull/routes/baltazar": [
+"crimpers",
+"technical",
+"vertical"
+],
+"/crags/kjugekull/routes/barnforbjudet": [
+"crimpers",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/baltazar-ls": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/caspersens-arete": [
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/caspersens-arete-ss": [
+"powerful",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/caspersens-arete-direkt-ss": [
+"powerful",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/block-rocking-beat": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/crescendo-40084": [
+"crimpers",
+"technical",
+"dangerous"
+],
+"/crags/kjugekull/routes/delikat-i-kvadrat": [
+"technical"
+],
+"/crags/kjugekull/routes/colosseum-ss": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/delikat-spagat": [
+"technical",
+"mental",
+"slab"
+],
+"/crags/kjugekull/routes/det-gatfulla-folket": [
+"slopers",
+"endurance",
+"technical",
+"traverse"
+],
+"/crags/kjugekull/routes/diners-club": [
+"slopers",
+"endurance",
+"technical"
+],
+"/crags/kjugekull/routes/duke-of-alba": [
+"crimpers",
+"fingery",
+"powerful"
+],
+"/crags/kjugekull/routes/ferdinand": [],
+"/crags/kjugekull/routes/full-pull-148212": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/forza": [
+"powerful",
+"endurance",
+"technical"
+],
+"/crags/kjugekull/routes/enduro": [
+"endurance",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/en-klok-ko": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/girighet": [
+"crimpers",
+"powerful",
+"dangerous"
+],
+"/crags/kjugekull/routes/gotcha-lagstart": [
+"technical",
+"dangerous"
+],
+"/crags/kjugekull/routes/gamle-tanter-skal-icke-klatre": [
+"slopers",
+"powerful"
+],
+"/crags/kjugekull/routes/huggsexa": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/grodan-boll-47352": [
+"crack",
+"technical"
+],
+"/crags/kjugekull/routes/hvalen-hvalborg-112508": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/huggsexa-sittstart": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/imperator": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/jesus-kristus": [
+"dyno",
+"technical"
+],
+"/crags/kjugekull/routes/illusion-222341": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/k-o-sittstart": [
+"slopers",
+"powerful"
+],
+"/crags/kjugekull/routes/klatteriver-sittstart-139546": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/la-boheme-112502": [
+"crimpers",
+"mental"
+],
+"/crags/kjugekull/routes/laaangsamt-laaangsamt": [
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/kung-fu-40147": [
+"technical"
+],
+"/crags/kjugekull/routes/lajfstajl": [
+"crimpers",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/libido-87188": [
+"slopers",
+"pockets",
+"technical"
+],
+"/crags/kjugekull/routes/latt-som-en-fjader": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/lithium": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/matador-9528": [],
+"/crags/kjugekull/routes/margarin-79290": [
+"slopers",
+"endurance"
+],
+"/crags/kjugekull/routes/lithium-lag-start": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/lithium-direkt": [
+"crimpers",
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/moby-dick-13286": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/monaro": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/nataraja-354401": [
+"technical"
+],
+"/crags/kjugekull/routes/nitroglycerin-88800": [
+"pockets",
+"mental"
+],
+"/crags/kjugekull/routes/matador-ss": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/poesi-for-fiskar": [
+"slopers",
+"powerful"
+],
+"/crags/kjugekull/routes/monolith-14567": [
+"crack",
+"technical"
+],
+"/crags/kjugekull/routes/non-fighting-generation": [
+"crimpers",
+"pockets"
+],
+"/crags/kjugekull/routes/pinocchio-9538": [
+"crimpers"
+],
+"/crags/kjugekull/routes/resan-till-nattens-ande": [
+"technical",
+"dangerous"
+],
+"/crags/kjugekull/routes/rondat": [
+"powerful",
+"dangerous"
+],
+"/crags/kjugekull/routes/shotgun-57783": [
+"crack",
+"technical"
+],
+"/crags/kjugekull/routes/regretto": [
+"crimpers",
+"technical",
+"dangerous"
+],
+"/crags/kjugekull/routes/rocketlauncher": [
+"pockets",
+"endurance",
+"technical",
+"traverse"
+],
+"/crags/kjugekull/routes/sinkadus-49089": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/solfaktor-100": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/sick-boy-18981": [
+"powerful"
+],
+"/crags/kjugekull/routes/sick-ard": [
+"technical"
+],
+"/crags/kjugekull/routes/sommartider": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/sonic": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/spqr": [
+"crack",
+"technical"
+],
+"/crags/kjugekull/routes/sonic-sittstart": [
+"crimpers",
+"technical"
+],
+"/crags/kjugekull/routes/stearin": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/stress-87305": [
+"powerful",
+"dangerous"
+],
+"/crags/kjugekull/routes/stora-bjorn": [
+"crimpers",
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/styv-som-en-fjader-112466": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/toledo": [
+"crimpers",
+"powerful"
+],
+"/crags/kjugekull/routes/the-4-layer-man-in-the-2-layer-version": [
+"pockets",
+"powerful"
+],
+"/crags/kjugekull/routes/traddodaren-139294": [
+"powerful",
+"technical",
+"mental"
+],
+"/crags/kjugekull/routes/tom-och-jerry": [
+"slopers",
+"technical"
+],
+"/crags/kjugekull/routes/tryggare-kan-ingen-vara": [
+"slopers",
+"powerful",
+"dangerous"
+],
+"/crags/kjugekull/routes/valdsam-9521": [
+"crimpers",
+"technical",
+"traverse"
+],
+"/crags/kjugekull/routes/varoffer": [
+"powerful",
+"technical"
+],
+"/crags/kungasalen/routes/aion": [
+"jugs",
+"powerful",
+"technical"
+],
+"/crags/kungasalen/routes/matriark": [
+"crimpers",
+"technical",
+"slab"
+],
+"/crags/kungasalen/routes/bullseye-sittstart-418266": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/kjugekull/routes/vibranium": [
+"technical"
+],
+"/crags/kungasalen/routes/oppmannalinjen": [
+"crimpers",
+"technical",
+"mental"
+],
+"/crags/norra-stro/routes/the-power-of-goodbye-40099": [
+"crimpers",
+"technical"
+],
+"/crags/panshamn/routes/granslandet-416882": [
+"powerful",
+"technical",
+"dangerous"
+],
+"/crags/kungasalen/routes/solitaire-418057": [
+"crimpers",
+"powerful",
+"technical"
+],
+"/crags/panshamn/routes/aomame-sittstart": [
+"powerful",
+"technical"
+],
+"/crags/panshamn/routes/kantrad-sittstart": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/panshamn/routes/project-417381": [
+"powerful",
+"technical",
+"mental",
+"slab"
+],
+"/crags/panshamn/routes/regulus": [
+"crimpers",
+"slopers",
+"powerful",
+"mental"
+],
+"/crags/panshamn/routes/tumult": [
+"powerful",
+"technical"
+],
+"/crags/the-big-roof/routes/wallstreet-375800": [
+"crimpers",
+"technical"
+],
+"/crags/the-big-roof/routes/the-big-roof-61646": [
+"powerful",
+"technical"
+],
+"/crags/torsebro/routes/dramaten": [
+"powerful",
+"technical"
+],
+"/crags/torsebro/routes/el-capitan-134283": [
+"technical"
+],
+"/crags/torsebro/routes/en-sko-i-skogen": [
+"crimpers",
+"technical"
+],
+"/crags/panshamn/routes/helvetet-i-en-ask-sittstart": [
+"slopers",
+"powerful",
+"technical"
+],
+"/crags/torsebro/routes/sockertoppen-sittstart": [
+"crimpers",
+"technical"
+],
+"/crags/torsebro/routes/sackaros": [
+"crimpers",
+"pockets",
+"technical"
+],
+"/crags/torsebro/routes/sockertoppen": [
+"crimpers",
+"technical"
+],
+"/crags/torsebro/routes/ett-monument-over-momentum-monumentet": [
+"powerful",
+"dyno",
+"technical"
+],
+"/crags/valje/routes/resandets-mentala-begransningar": [
+"powerful",
+"dyno",
+"technical"
+],
+"/crags/valje/routes/valje-noje": [
+"powerful"
 ]
 }
