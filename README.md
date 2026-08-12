@@ -6,7 +6,7 @@ Given the four PDF top-lists, this project takes every boulder graded **L to 7A*
 
 ## Open it
 
-Open [`map.html`](map.html) in any browser — it's a single self-contained file (Leaflet + CARTO tiles from CDN, all data embedded). No build step, no server.
+Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + CARTO tiles from CDN, all data embedded). No build step, no server.
 
 ### Features
 - **Lists** — multi-select checkboxes; selecting several lists merges their boulders, de-duplicates shared sectors, and recomputes one combined walking route.
@@ -25,14 +25,14 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 3. **Locate** every boulder: `27crags` web API (`/api/web01/crags/<id>`) gives per-route `sector_id`; each sector has GPS. Sector = the natural walking granularity. Parking markers come from the same API.
 4. **Route** each list with a TSP (nearest-neighbour + 2-opt), anchored at parking.
 5. **Characteristics** are only rendered on 27crags route pages for signed-in users, so they were scraped from an authenticated browser session (`.tag` classes on each boulder page). Star ratings come straight from the crag API.
-6. **Render** everything into the self-contained `map.html`.
+6. **Render** everything into the self-contained `index.html`.
 
 ## Data files
 
 | File | What |
 |---|---|
 | `Kjuge top-lists v1.pdf` | Source lists |
-| `map_data.json` | The data embedded in `map.html` (stops, boulders, grades, chars, ratings, per-list routes) |
+| `map_data.json` | The data embedded in `index.html` (stops, boulders, grades, chars, ratings, per-list routes) |
 | `links_grades.json` | Each PDF link paired with its list + grade |
 | `located.json` | L–7A boulders with sector GPS |
 | `routes.json` | Precomputed per-list TSP order + distance |
