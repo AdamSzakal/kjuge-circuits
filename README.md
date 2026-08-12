@@ -2,6 +2,8 @@
 
 Interactive walking-route planner for the **Kjugekull** and **Around Ivösjön** bouldering top-lists (Carl Nilsask, 2021).
 
+The four top-lists are the work of **Carl Nilsask** (2021) — see the [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing).
+
 Given the four PDF top-lists, this project takes every boulder graded **L to 7A**, looks up each boulder's location on [27crags](https://27crags.com) (now thetopo.com), and plots the shortest walk through them all. It also supports live filtering by **grade**, **characteristics** (crimpers, slopers, slab, …) and **star rating**.
 
 ## Open it
@@ -47,4 +49,4 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 - The two **Around Ivösjön** lists span ~13 crags around the lake (some across water); their "routes" are a visiting *order*, not a footpath. Distances are straight-line sums, not trail-routed.
 - Boulders that are unclimbed projects (no 27crags link in the PDF) are excluded.
 
-Data © 27crags / thetopo.com and the respective contributors. Lists © Carl Nilsask.
+Lists © **Carl Nilsask** — [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing). Boulder data © 27crags / thetopo.com and the respective contributors.
