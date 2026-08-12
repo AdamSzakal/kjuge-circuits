@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><title>Kjuge walking routes</title>
+<!doctype html><html><head><meta charset="utf-8"><title>Kjuge Circles</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -80,6 +80,7 @@ L.control.zoom({position:'topright'}).addTo(map);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   {maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);
 
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function stars(r){if(r==null)return '';var full=Math.round(r),s='';for(var i=0;i<3;i++)s+=(i<full?'★':'☆');
   return ' <span class="stars">'+s+'</span> <span class="rval">'+r.toFixed(1)+'</span>';}
 function hav(a,b){var R=6371000,rad=Math.PI/180;var la1=a[0]*rad,lo1=a[1]*rad,la2=b[0]*rad,lo2=b[1]*rad;
@@ -133,7 +134,7 @@ function syncG(){[].forEach.call(gradesEl.children,function(c){c.classList.toggl
 
 var charsEl=document.getElementById('chars');
 charList.forEach(function(ch){var c=document.createElement('div');c.className='chip on';c.dataset.c=ch;
-  c.innerHTML=ch+' <span class="n">'+allChars[ch]+'</span>';
+  c.innerHTML=cap(ch)+' <span class="n">'+allChars[ch]+'</span>';
   c.onclick=function(){charOn[ch]=!charOn[ch];this.classList.toggle('on',charOn[ch]);render(false);};charsEl.appendChild(c);});
 document.getElementById('cAll').onclick=function(){charList.forEach(function(c){charOn[c]=true;});syncC();render(false);};
 document.getElementById('cNone').onclick=function(){charList.forEach(function(c){charOn[c]=false;});syncC();render(false);};
@@ -180,7 +181,7 @@ function render(fit){
     if(prev)dist+=hav(prev,pt);prev=pt;
     var sector=s.label.split(' · ').pop();
     var html='<b>'+(pos+1)+'. '+sector+'</b><br>'+s.b.slice().sort(function(a,b){return GORD.indexOf(a.grade)-GORD.indexOf(b.grade);}).map(function(b){
-      var ch=b.chars.length?' <span style="color:#888">['+b.chars.join(', ')+']</span>':'';
+      var ch=b.chars.length?' <span style="color:#888">['+b.chars.map(cap).join(', ')+']</span>':'';
       return '<a href="'+b.url+'" target="_blank" rel="noopener">'+b.name+'</a> ('+b.grade+')'+stars(b.rating)+ch;
     }).join('<br>');
     var mk=L.circleMarker(pt,{radius:12,color:'#000',weight:1,fillColor:col,fillOpacity:.9}).addTo(layer);
