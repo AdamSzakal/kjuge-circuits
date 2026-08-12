@@ -14,6 +14,7 @@ Open [`index.html`](index.html) in any browser — it's a single self-contained 
 - **Character filter** — 13 characteristics scraped from 27crags (technical, mental, slopers, crimpers, slab, powerful, dangerous, crack, jugs, endurance, pockets, dyno, traverse). Shows boulders with *any* selected characteristic.
 - **Shortest route** — nearest-neighbour + 2-opt TSP over the distinct sectors, anchored at the nearest parking, recomputed in-browser whenever the selection/filters change.
 - **Popups** — each stop lists its boulders with grade, ⭐ rating (0–3), characteristics, and a link to the 27crags page.
+- **Share** — the current selection (lists + grade + character filters) is encoded in the URL hash; the **Share** button copies a link that reopens the exact same circuit. No backend required.
 - **Mobile** — full-screen map with a bottom-sheet filter panel and touch-sized controls; desktop keeps a docked side panel.
 
 A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](ROUTES.md).
