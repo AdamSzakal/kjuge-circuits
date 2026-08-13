@@ -166,10 +166,10 @@ document.getElementById('cAll').onclick=function(){charList.forEach(function(c){
 document.getElementById('cNone').onclick=function(){charList.forEach(function(c){charOn[c]=false;});syncC();render(false);};
 function syncC(){[].forEach.call(charsEl.children,function(c){c.classList.toggle('on',charOn[c.dataset.c]);});}
 
-var RSTEPS=[[0,'Any'],[1,'≥1★'],[1.5,'≥1.5★'],[2,'≥2★'],[2.5,'≥2.5★'],[3,'3★']];
+var RSTEPS=[[1,'1★'],[2,'2★'],[3,'3★']];
 var ratingsEl=document.getElementById('ratings');
 RSTEPS.forEach(function(rs){var c=document.createElement('div');c.className='chip'+(rs[0]===minRating?' on':'');c.dataset.r=rs[0];c.textContent=rs[1];
-  c.onclick=function(){minRating=+this.dataset.r;syncR();render(false);};ratingsEl.appendChild(c);});
+  c.onclick=function(){var v=+this.dataset.r;minRating=(minRating===v?0:v);syncR();render(false);};ratingsEl.appendChild(c);});
 function syncR(){[].forEach.call(ratingsEl.children,function(c){c.classList.toggle('on',+c.dataset.r===minRating);});}
 
 var layer=L.layerGroup().addTo(map);
