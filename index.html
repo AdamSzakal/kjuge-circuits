@@ -175,7 +175,7 @@ function syncR(){[].forEach.call(ratingsEl.children,function(c){c.classList.togg
 var layer=L.layerGroup().addTo(map);
 function boulderVisible(b){
   if(!gradeOn[b.grade]) return false;
-  if((b.rating==null?0:b.rating) < minRating) return false;
+  if(Math.round(b.rating==null?0:b.rating) < minRating) return false;
   if(b.chars.length>0 && !b.chars.some(function(c){return charOn[c];})) return false;
   return true;}
 
