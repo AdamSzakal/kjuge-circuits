@@ -71,6 +71,7 @@ body.open #backdrop{display:block;opacity:1}
     <div class="sec"><div class="hdr"><b>Grade</b><button class="mini" id="gAll">All</button><button class="mini" id="gNone">None</button></div><div class="chips" id="grades"></div></div>
     <div class="sec"><div class="hdr"><b>Character</b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div><div class="chips" id="chars"></div>
       <div class="note">Shows boulders with <b>any</b> selected characteristic (untagged always shown).</div></div>
+    <div class="sec"><div class="hdr"><b>Min rating</b></div><div class="chips" id="ratings"></div></div>
     <div class="sec"><span id="stats"></span></div>
     <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.</div></div>
   </div>
@@ -105,7 +106,7 @@ function tsp(C,start){var n=C.length;if(n<=1)return C.map(function(_,i){return i
 var allChars={};
 DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){b.chars.forEach(function(c){allChars[c]=(allChars[c]||0)+1;});});});});
 var charList=Object.keys(allChars).sort(function(a,b){return allChars[b]-allChars[a];});
-var listOn={}, gradeOn={}, charOn={};
+var listOn={}, gradeOn={}, charOn={}, minRating=0;
 DATA.forEach(function(d,i){listOn[i]=(i===0);});
 GORD.forEach(function(g){gradeOn[g]=true;});
 charList.forEach(function(c){charOn[c]=true;});
@@ -122,11 +123,13 @@ function parseHash(){
   if(p.l!==undefined){DATA.forEach(function(_,i){listOn[i]=false;});p.l.split('-').filter(Boolean).forEach(function(i){listOn[+i]=true;});}
   if(p.g!==undefined){GORD.forEach(function(g){gradeOn[g]=false;});p.g.split('-').filter(Boolean).forEach(function(i){var g=GORD[+i];if(g)gradeOn[g]=true;});}
   if(p.c!==undefined){charList.forEach(function(c){charOn[c]=false;});p.c.split('-').filter(Boolean).forEach(function(i){var c=charList[+i];if(c)charOn[c]=true;});}
+  if(p.r!==undefined){minRating=parseFloat(p.r)||0;}
 }
 function syncHash(){
   var parts=[],lon=[];DATA.forEach(function(_,i){if(listOn[i])lon.push(i);});parts.push('l='+lon.join('-'));
   if(GORD.some(function(g){return !gradeOn[g];})){var gi=[];GORD.forEach(function(g,i){if(gradeOn[g])gi.push(i);});parts.push('g='+gi.join('-'));}
   if(charList.some(function(c){return !charOn[c];})){var ci=[];charList.forEach(function(c,i){if(charOn[c])ci.push(i);});parts.push('c='+ci.join('-'));}
+  if(minRating>0)parts.push('r='+minRating);
   history.replaceState(null,'','#'+parts.join('&'));
 }
 document.getElementById('pshare').onclick=function(){var btn=this;syncHash();var url=location.href;
@@ -163,9 +166,16 @@ document.getElementById('cAll').onclick=function(){charList.forEach(function(c){
 document.getElementById('cNone').onclick=function(){charList.forEach(function(c){charOn[c]=false;});syncC();render(false);};
 function syncC(){[].forEach.call(charsEl.children,function(c){c.classList.toggle('on',charOn[c.dataset.c]);});}
 
+var RSTEPS=[[0,'Any'],[1,'≥1★'],[1.5,'≥1.5★'],[2,'≥2★'],[2.5,'≥2.5★'],[3,'3★']];
+var ratingsEl=document.getElementById('ratings');
+RSTEPS.forEach(function(rs){var c=document.createElement('div');c.className='chip'+(rs[0]===minRating?' on':'');c.dataset.r=rs[0];c.textContent=rs[1];
+  c.onclick=function(){minRating=+this.dataset.r;syncR();render(false);};ratingsEl.appendChild(c);});
+function syncR(){[].forEach.call(ratingsEl.children,function(c){c.classList.toggle('on',+c.dataset.r===minRating);});}
+
 var layer=L.layerGroup().addTo(map);
 function boulderVisible(b){
   if(!gradeOn[b.grade]) return false;
+  if((b.rating==null?0:b.rating) < minRating) return false;
   if(b.chars.length>0 && !b.chars.some(function(c){return charOn[c];})) return false;
   return true;}
 
@@ -213,6 +223,6 @@ function render(fit){
 }
 if(!isMobile()) openPanel();
 window.addEventListener('resize',function(){if(!isMobile()){panel.classList.remove('hidden');}});
-parseHash();syncL();syncG();syncC();
+parseHash();syncL();syncG();syncC();syncR();
 render(true);
 </script></body></html>
