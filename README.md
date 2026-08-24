@@ -6,6 +6,12 @@ The four top-lists are the work of **Carl Nilsask** (2021) — see the [original
 
 Given the four PDF top-lists, this project takes every boulder graded **L to 7A**, looks up each boulder's location on [27crags](https://27crags.com) (now thetopo.com), and plots the shortest walk through them all. It also supports live filtering by **grade**, **characteristics** (crimpers, slopers, slab, …) and **star rating**.
 
+
+
+https://github.com/user-attachments/assets/d47d994f-6837-40e9-9478-73f7489bf25a
+
+
+
 ## Open it
 
 Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + CARTO tiles from CDN, all data embedded). No build step, no server.
