@@ -650,7 +650,13 @@ document.getElementById('hiddenNote').onclick=function(ev){
 document.addEventListener('click',function(ev){
   var btn=ev.target.closest?ev.target.closest('.pbtn'):null;if(!btn)return;
   var id=+btn.dataset.id;
-  if(btn.classList.contains('rm'))removeFromCircle(id);
+  if(btn.classList.contains('rm')){
+    // The popup sits on the map, so make sure the tap was meant.
+    var nm=BY_ID[id]?BY_ID[id][1]:'this boulder';
+    var from=[];CIRCLES.forEach(function(c,i){if(c.ids.indexOf(id)>=0)from.push(circleName(i));});
+    if(!confirm('Remove “'+nm+'” from '+(from.length?from.join(' and '):'your circle')+'?'))return;
+    removeFromCircle(id);
+  }
   else if(btn.classList.contains('ad'))addToCircle(id);
   else if(btn.classList.contains('hd'))hideIds[id]=1;
   map.closePopup();renderRes();renderPicked();renderLists();render(false);
