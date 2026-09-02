@@ -20,22 +20,27 @@ body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-te
 #fab .cnt{background:var(--acc);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700}
 #backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1300;display:none;opacity:0;transition:opacity .2s}
 body.open #backdrop{display:block;opacity:1}
-#panel{position:absolute;z-index:1400;top:10px;left:10px;width:270px;max-height:calc(100vh - 20px);
+#panel,#editor{position:absolute;z-index:1400;top:10px;left:10px;width:270px;max-height:calc(100vh - 20px);
   background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
 #panel.hidden{display:none}
-#phead{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#222;color:#fff;position:sticky;top:0}
-#phead b{flex:1;font-size:15px}
-#pclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:16px;font-size:18px;cursor:pointer}
-#pshare{background:rgba(255,255,255,.15);border:none;color:#fff;height:32px;padding:0 12px;border-radius:16px;font-size:13px;cursor:pointer}
+/* The circle editor is its own container, next to the filter panel. */
+#editor{left:290px;width:330px;z-index:1450;display:none}
+#editor.open{display:flex}
+#phead,#ehead{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#222;color:#fff;position:sticky;top:0}
+#ehead{background:var(--my)}
+#phead b,#ehead b{flex:1;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pclose,#eclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:16px;font-size:18px;cursor:pointer}
+#pshare,#edone{background:rgba(255,255,255,.15);border:none;color:#fff;height:32px;padding:0 12px;border-radius:16px;font-size:13px;cursor:pointer}
 #pshare.ok{background:#3cb44b}
-#pbody{overflow:auto;-webkit-overflow-scrolling:touch;padding:4px 0 10px}
+#pbody,#ebody{overflow:auto;-webkit-overflow-scrolling:touch;padding:4px 0 10px}
 .sec{padding:10px 14px;border-top:1px solid #eee}
 .sec:first-child{border-top:none}
-.sep{height:8px;background:#f0f0f0;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0}
-.sep+.sec{border-top:none}
 .hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .hdr b{flex:1;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#444}
 .mini{font-size:12px;padding:4px 10px;border:1px solid #ccc;background:#f7f7f7;border-radius:14px;cursor:pointer;min-height:30px}
+.mini.pri{background:var(--my);border-color:var(--my);color:#fff;font-weight:600}
+.mini.wide{display:block;width:100%;margin:8px 0 2px;min-height:40px;font-size:14px}
+.mini.danger{color:#c00;border-color:#e3b6b6;background:#fff7f7}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;border:1.5px solid #ccc;
   background:#f2f2f2;color:#333;font-size:14px;cursor:pointer;user-select:none;min-height:38px;line-height:1}
@@ -49,6 +54,9 @@ body.open #backdrop{display:block;opacity:1}
 .listrow.on .box{background:var(--dot,var(--acc));border-color:var(--dot,var(--acc))}
 .listrow .tt{flex:1}
 .listrow .km{color:#888;font-size:12px}
+.listrow .edit{flex:none;background:none;border:none;color:#666;font-size:15px;cursor:pointer;padding:4px 6px;min-height:32px}
+.listrow.editing{border-style:dashed;border-color:var(--dot,var(--my))}
+.lgroup{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#999;margin:10px 0 2px}
 .txt{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:10px;font:14px/1.3 inherit;min-height:42px;background:#fff}
 .txt:focus{outline:none;border-color:var(--my)}
 #q{margin-top:8px}
@@ -77,11 +85,13 @@ body.open #backdrop{display:block;opacity:1}
 .note a{color:#0645ad}
 #stats{color:#555;font-size:13px}
 @media (max-width:600px){
-  #panel{top:auto;bottom:0;left:0;right:0;width:100%;max-height:78vh;border-radius:16px 16px 0 0;
+  #panel,#editor{top:auto;bottom:0;left:0;right:0;width:100%;max-height:78vh;border-radius:16px 16px 0 0;
     transform:translateY(100%);transition:transform .25s ease;display:flex}
   body.open #panel{transform:translateY(0)}
   #panel.hidden{display:flex}
-  #pbody{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  #editor{z-index:1450;transform:translateY(100%)}
+  #editor.open{transform:translateY(0)}
+  #pbody,#ebody{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
   .chip{padding:10px 14px;min-height:44px;font-size:15px}
   .mini{min-height:36px;padding:6px 12px}
   .leaflet-control-zoom{display:none}
@@ -95,19 +105,6 @@ body.open #backdrop{display:block;opacity:1}
 <div id="panel" class="hidden">
   <div id="phead"><b>Filters</b><button id="pshare" title="Copy a link to this circuit">🔗 Share</button><button id="pclose" aria-label="Close">×</button></div>
   <div id="pbody">
-    <div class="sec">
-      <div class="hdr"><b>My circle</b><button class="mini" id="myPaste">Paste list</button><button class="mini" id="myClear">Clear</button></div>
-      <div id="pasteBox" hidden>
-        <textarea id="pasteTa" class="txt ta" placeholder="Paste problem names — one per line, or comma separated.&#10;A grade after the name helps when two boulders share a name:&#10;&#10;Pinocchio, 7B+&#10;Clark Kent&#10;Grov Groove"></textarea>
-        <div class="hdr" style="margin:8px 0 0"><button class="mini" id="pasteAdd">Add to circle</button><button class="mini" id="pasteCancel">Cancel</button></div>
-        <div class="note" id="pasteMsg"></div>
-      </div>
-      <input id="myName" class="txt" placeholder="Name your circle" maxlength="60" autocomplete="off">
-      <input id="q" class="txt" type="search" placeholder="Search all boulders…" autocomplete="off">
-      <div id="qres"></div>
-      <div id="myList"></div>
-    </div>
-    <div class="sep"></div>
     <div class="sec"><div class="hdr"><b>Lists</b><button class="mini" id="lAll">All</button><button class="mini" id="lNone">None</button></div><div id="listSel"></div><div class="note" id="hiddenNote"></div></div>
     <div class="sec"><div class="hdr"><b>Grade</b><button class="mini" id="gAll">All</button><button class="mini" id="gNone">None</button></div><div class="chips" id="grades"></div></div>
     <div class="sec"><div class="hdr"><b>Character</b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div><div class="chips" id="chars"></div>
@@ -115,6 +112,26 @@ body.open #backdrop{display:block;opacity:1}
     <div class="sec"><div class="hdr"><b>Min rating</b></div><div class="chips" id="ratings"></div></div>
     <div class="sec"><span id="stats"></span></div>
     <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.</div></div>
+  </div>
+</div>
+<div id="editor">
+  <div id="ehead"><b id="etitle">New circle</b><button id="edone">Done</button><button id="eclose" aria-label="Close">×</button></div>
+  <div id="ebody">
+    <div class="sec">
+      <input id="myName" class="txt" placeholder="Circle name" maxlength="60" autocomplete="off">
+      <input id="q" class="txt" type="search" placeholder="Search all boulders…" autocomplete="off">
+      <div id="qres"></div>
+    </div>
+    <div class="sec">
+      <div class="hdr"><b>In this circle</b><span id="ecnt" class="km"></span><button class="mini" id="myPaste">Paste list</button></div>
+      <div id="pasteBox" hidden>
+        <textarea id="pasteTa" class="txt ta" placeholder="Paste problem names — one per line, or comma separated.&#10;A grade after the name helps when two boulders share a name:&#10;&#10;Kaffe 4+&#10;Cappuccino, 4+&#10;Banracing"></textarea>
+        <div class="hdr" style="margin:8px 0 0"><button class="mini pri" id="pasteAdd">Add to circle</button><button class="mini" id="pasteCancel">Cancel</button></div>
+        <div class="note" id="pasteMsg"></div>
+      </div>
+      <div id="myList"></div>
+    </div>
+    <div class="sec"><button class="mini danger" id="edel">Delete this circle</button></div>
   </div>
 </div>
 <div id="map"></div>
@@ -163,10 +180,15 @@ charList.forEach(function(c){charOn[c]=true;});
 
 var bodyEl=document.body, panel=document.getElementById('panel'), fab=document.getElementById('fab');
 function openPanel(){bodyEl.classList.add('open');panel.classList.remove('hidden');fab.classList.add('docked');}
-function closePanel(){bodyEl.classList.remove('open');fab.classList.remove('docked');if(!isMobile())panel.classList.add('hidden');}
+function closePanel(){bodyEl.classList.remove('open');fab.classList.remove('docked');
+  if(editIdx>=0)closeEditor();
+  if(!isMobile())panel.classList.add('hidden');}
 fab.onclick=openPanel;document.getElementById('pclose').onclick=closePanel;document.getElementById('backdrop').onclick=closePanel;
 
 /* ---- shareable state in URL hash ---- */
+// "~" and "!" separate the fields, so they never survive inside a name.
+function encParam(s){return encodeURIComponent(s).replace(/~/g,'%7E').replace(/!/g,'%21');}
+function decParam(s){try{return decodeURIComponent(s);}catch(e){return s;}}
 function parseHash(){
   var h=(location.hash||'').replace(/^#/,'');if(!h)return;
   var p={};h.split('&').forEach(function(kv){var a=kv.split('=');p[a[0]]=a[1]||'';});
@@ -174,10 +196,17 @@ function parseHash(){
   if(p.g!==undefined){GORD.forEach(function(g){gradeOn[g]=false;});p.g.split('-').filter(Boolean).forEach(function(i){var g=GORD[+i];if(g)gradeOn[g]=true;});}
   if(p.c!==undefined){charList.forEach(function(c){charOn[c]=false;});p.c.split('-').filter(Boolean).forEach(function(i){var c=charList[+i];if(c)charOn[c]=true;});}
   if(p.r!==undefined){minRating=parseFloat(p.r)||0;}
-  // My circle: 27crags route ids in base 36, plus the name and the on/off state.
-  if(p.x!==undefined){myIds=p.x.split('.').filter(Boolean).map(function(s){return parseInt(s,36);}).filter(function(id){return BY_ID[id];});}
-  if(p.xn!==undefined){try{myName=decodeURIComponent(p.xn);}catch(e){myName=p.xn;}}
-  if(p.xo!==undefined){myOn=p.xo!=='0';}
+  // Circles: "on~name~ids" groups split by "!", route ids in base 36.
+  if(p.x!==undefined&&p.x){
+    CIRCLES=[];
+    p.x.split('!').filter(Boolean).forEach(function(g){
+      var f=g.split('~'), on=true, nm='', ids=f[0];
+      if(f.length>=3){on=f[0]!=='0';nm=decParam(f[1]);ids=f[2];}
+      else if(p.xn!==undefined){nm=decParam(p.xn);on=p.xo!=='0';}   // links of the first version
+      var list=ids.split('.').filter(Boolean).map(function(s){return parseInt(s,36);}).filter(function(id){return BY_ID[id];});
+      if(list.length)CIRCLES.push({n:nm,ids:list,on:on});
+    });
+  }
   if(p.h!==undefined){hideIds={};p.h.split('.').filter(Boolean).forEach(function(s){hideIds[parseInt(s,36)]=1;});}
 }
 function syncHash(){
@@ -185,11 +214,10 @@ function syncHash(){
   if(GORD.some(function(g){return !gradeOn[g];})){var gi=[];GORD.forEach(function(g,i){if(gradeOn[g])gi.push(i);});parts.push('g='+gi.join('-'));}
   if(charList.some(function(c){return !charOn[c];})){var ci=[];charList.forEach(function(c,i){if(charOn[c])ci.push(i);});parts.push('c='+ci.join('-'));}
   if(minRating>0)parts.push('r='+minRating);
-  if(myIds.length){
-    parts.push('x='+myIds.map(function(id){return id.toString(36);}).join('.'));
-    if(myName)parts.push('xn='+encodeURIComponent(myName));
-    if(!myOn)parts.push('xo=0');
-  }
+  var cs=CIRCLES.filter(function(c){return c.ids.length;});
+  if(cs.length)parts.push('x='+cs.map(function(c){
+    return (c.on?'1':'0')+'~'+encParam(c.n)+'~'+c.ids.map(function(id){return id.toString(36);}).join('.');
+  }).join('!'));
   var hid=Object.keys(hideIds);
   if(hid.length)parts.push('h='+hid.map(function(id){return (+id).toString(36);}).join('.'));
   history.replaceState(null,'','#'+parts.join('&'));
@@ -201,17 +229,41 @@ document.getElementById('pshare').onclick=function(){var btn=this;syncHash();var
 };
 
 var listSel=document.getElementById('listSel');
-DATA.forEach(function(d,i){
-  var row=document.createElement('div');
-  row.className='listrow'+(listOn[i]?' on':'');row.dataset.i=i;row.style.setProperty('--dot',d.color);
-  row.innerHTML='<span class="box">'+(listOn[i]?'✓':'')+'</span><span class="tt">'+d.title+' <span class="km">('+(d.dist/1000).toFixed(2)+' km)</span></span>';
-  row.onclick=function(){var i=+this.dataset.i;listOn[i]=!listOn[i];
-    this.classList.toggle('on',listOn[i]);this.querySelector('.box').textContent=listOn[i]?'✓':'';render(true);};
-  listSel.appendChild(row);
-});
-function syncL(){[].forEach.call(listSel.children,function(r){var i=+r.dataset.i;r.classList.toggle('on',listOn[i]);r.querySelector('.box').textContent=listOn[i]?'✓':'';});}
-document.getElementById('lAll').onclick=function(){DATA.forEach(function(_,i){listOn[i]=true;});syncL();render(true);};
-document.getElementById('lNone').onclick=function(){DATA.forEach(function(_,i){listOn[i]=false;});syncL();render(true);};
+// One row component for both kinds of list: the top-lists and your own circles.
+function listRow(o){
+  return '<div class="listrow'+(o.on?' on':'')+(o.editing?' editing':'')+'" data-t="'+o.t+'" data-i="'+o.i+'" style="--dot:'+o.color+'">'+
+    '<span class="box">'+(o.on?'\u2713':'')+'</span>'+
+    '<span class="tt">'+esc(o.title)+' <span class="km">('+o.meta+')</span></span>'+
+    (o.edit?'<button class="edit" title="Edit this circle">\u270e</button>':'')+'</div>';
+}
+function renderLists(){
+  var h=DATA.map(function(d,i){
+    return listRow({t:'d',i:i,on:listOn[i],color:d.color,title:d.title,meta:(d.dist/1000).toFixed(2)+' km'});
+  }).join('');
+  h+='<div class="lgroup">My circles</div>';
+  h+=CIRCLES.map(function(c,i){
+    return listRow({t:'c',i:i,on:c.on,color:circleColor(i),title:circleName(i),meta:c.ids.length,edit:true,editing:i===editIdx});
+  }).join('');
+  if(!CIRCLES.length)h+='<div class="note">None yet \u2014 build one from any boulder in the dataset.</div>';
+  h+='<button class="mini pri wide" id="lNew">+ New circle</button>';
+  listSel.innerHTML=h;
+}
+listSel.onclick=function(ev){
+  if(ev.target.id==='lNew'){openEditor();return;}
+  var row=ev.target.closest('.listrow');if(!row)return;
+  var i=+row.dataset.i;
+  if(row.dataset.t==='c'){
+    if(ev.target.classList.contains('edit')){openEditor(i);return;}
+    CIRCLES[i].on=!CIRCLES[i].on;
+  }else{
+    listOn[i]=!listOn[i];
+  }
+  renderLists();render(true);
+};
+var syncL=renderLists;   // the hash and the All/None buttons still call it
+function setAllLists(v){DATA.forEach(function(_,i){listOn[i]=v;});CIRCLES.forEach(function(c){c.on=v;});renderLists();render(true);}
+document.getElementById('lAll').onclick=function(){setAllLists(true);};
+document.getElementById('lNone').onclick=function(){setAllLists(false);};
 
 var gradesEl=document.getElementById('grades');
 GORD.forEach(function(g){var c=document.createElement('div');c.className='chip on';c.textContent=g;c.dataset.g=g;
@@ -234,22 +286,35 @@ RSTEPS.forEach(function(rs){var c=document.createElement('div');c.className='chi
   c.onclick=function(){var v=+this.dataset.r;minRating=(minRating===v?0:v);syncR();render(false);};ratingsEl.appendChild(c);});
 function syncR(){[].forEach.call(ratingsEl.children,function(c){c.classList.toggle('on',+c.dataset.r===minRating);});}
 
-/* ---- my circle: free-text search over every boulder in the dataset ---- */
-var MYCOL='#4363d8';
-var myIds=[], myName='', myOn=true, hideIds={};
+/* ---- custom circles: many named circles, each with its own colour ---- */
+var PAL=['#4363d8','#f58231','#911eb4','#008080','#9A6324','#800000','#3cb44b'];
+var CIRCLES=[];          // {n:name, ids:[route ids], on:true}
+var editIdx=-1;          // circle open in the editor, -1 = none
+var hideIds={};
 var BY_ID={};ALL.forEach(function(e){BY_ID[e[0]]=e;});
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function norm(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
 function bslug(s){return norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function circleColor(i){return PAL[i%PAL.length];}
+function circleName(i){return CIRCLES[i].n||('Circle '+(i+1));}
+
 // Turns one ALL row into the same shape of boulder the map popups already use.
 function toB(e){
   var s=SECT[e[4]], c=CRAGS[s[0]];
   var url='https://27crags.com/crags/'+c[0]+'/routes/'+(e[5]||bslug(e[1]));
   return {id:e[0],name:e[1],grade:e[2],rating:e[3]<0?null:e[3],chars:CHARS_BY_URL[url]||[],
-    url:url,lat:s[2],lng:s[3],label:c[1]+' · '+s[1],cragIdx:s[0],mine:true};
+    url:url,lat:s[2],lng:s[3],label:c[1]+' \u00b7 '+s[1],cragIdx:s[0],mine:true};
 }
-function myBoulders(){var out=[];myIds.forEach(function(id){if(BY_ID[id])out.push(toB(BY_ID[id]));});return out;}
+// Every boulder of every switched-on circle.
+function mineBoulders(){
+  var out=[],seen={};
+  CIRCLES.forEach(function(c){
+    if(!c.on)return;
+    c.ids.forEach(function(id){if(BY_ID[id]&&!seen[id]){seen[id]=1;out.push(toB(BY_ID[id]));}});
+  });
+  return out;
+}
 
 // Every list boulder also exists in the full index, so it gets the same id.
 var ID_BY_URL={};
@@ -259,10 +324,51 @@ var CHARS_BY_URL={};
 DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){
   CHARS_BY_URL[b.url]=b.chars;b.id=ID_BY_URL[b.url];});});});
 
-function addToCircle(id){if(BY_ID[id]&&myIds.indexOf(id)<0){myIds.push(id);delete hideIds[id];return true;}return false;}
-function removeFromCircle(id){var i=myIds.indexOf(id);if(i<0)return false;myIds.splice(i,1);return true;}
+function newCircle(name){CIRCLES.push({n:name||'',ids:[],on:true});return CIRCLES.length-1;}
+// Where a "+" outside the editor puts a boulder.
+function targetIdx(){
+  if(editIdx>=0)return editIdx;
+  if(CIRCLES.length)return CIRCLES.length-1;
+  return newCircle('');
+}
+function addToCircle(id,ci){
+  if(!BY_ID[id])return false;
+  if(ci===undefined)ci=targetIdx();
+  var c=CIRCLES[ci];if(c.ids.indexOf(id)>=0)return false;
+  c.ids.push(id);delete hideIds[id];return true;
+}
+function removeFromCircle(id,ci){
+  var hit=false;
+  CIRCLES.forEach(function(c,i){
+    if(ci!==undefined&&i!==ci)return;
+    var k=c.ids.indexOf(id);if(k>=0){c.ids.splice(k,1);hit=true;}
+  });
+  return hit;
+}
+function inCircle(id){return editIdx>=0&&CIRCLES[editIdx].ids.indexOf(id)>=0;}
 
-/* ---- paste a list of problem names ---- */
+/* ---- free-text search over every boulder in the dataset ---- */
+var IDX=null;
+function buildIdx(){IDX=ALL.map(function(e){var s=SECT[e[4]];
+  return norm(e[1]+' '+e[2]+' '+CRAGS[s[0]][1]+' '+s[1]);});}
+function search(q){
+  if(!IDX)buildIdx();
+  var toks=norm(q).trim().split(/\s+/).filter(Boolean);if(!toks.length)return [];
+  var hits=[];
+  for(var i=0;i<ALL.length&&hits.length<400;i++){
+    var t=IDX[i],ok=true;
+    for(var k=0;k<toks.length;k++){if(t.indexOf(toks[k])<0){ok=false;break;}}
+    if(!ok)continue;
+    var nm=norm(ALL[i][1]);
+    // Name matches rank above crag/sector matches.
+    var rank=nm.indexOf(toks[0])===0?0:(nm.indexOf(toks[0])>=0?1:2);
+    hits.push([rank,ALL[i]]);
+  }
+  hits.sort(function(a,b){return a[0]-b[0];});
+  return hits.slice(0,40).map(function(h){return h[1];});
+}
+
+/* ---- pasting a list of problem names ---- */
 var NAME_IDX=null;
 function buildNameIdx(){
   NAME_IDX={};
@@ -336,117 +442,133 @@ function matchName(name,grade){
   // Same name in several crags: take the best rated one.
   return c.slice().sort(function(a,b){return b[3]-a[3];})[0];
 }
+
+/* ---- the editor container ---- */
+var editor=document.getElementById('editor');
+var qEl=document.getElementById('q'), qres=document.getElementById('qres'), myListEl=document.getElementById('myList');
+var nameEl=document.getElementById('myName'), etitle=document.getElementById('etitle'), ecnt=document.getElementById('ecnt');
 var pasteBox=document.getElementById('pasteBox'), pasteTa=document.getElementById('pasteTa'), pasteMsg=document.getElementById('pasteMsg');
+
+function openEditor(i){
+  if(i===undefined)i=newCircle('');
+  editIdx=i;
+  nameEl.value=CIRCLES[i].n;
+  qEl.value='';qres.innerHTML='';
+  pasteBox.hidden=true;pasteTa.value='';pasteMsg.innerHTML='';
+  editor.classList.add('open');
+  if(isMobile())bodyEl.classList.add('open');else openPanel();
+  renderPicked();renderLists();
+  if(!isMobile())nameEl.focus();
+}
+function closeEditor(){
+  // Drop a circle that was opened but left empty.
+  if(editIdx>=0&&!CIRCLES[editIdx].ids.length&&!CIRCLES[editIdx].n)CIRCLES.splice(editIdx,1);
+  editIdx=-1;editor.classList.remove('open');
+  renderLists();render(false);
+}
+document.getElementById('eclose').onclick=closeEditor;
+document.getElementById('edone').onclick=closeEditor;
+document.getElementById('edel').onclick=function(){
+  if(editIdx<0)return;
+  var c=CIRCLES[editIdx];
+  if(c.ids.length&&!confirm('Delete \u201c'+circleName(editIdx)+'\u201d and its '+c.ids.length+' boulders?'))return;
+  CIRCLES.splice(editIdx,1);editIdx=-1;
+  editor.classList.remove('open');renderLists();render(false);
+};
+nameEl.oninput=function(){
+  if(editIdx<0)return;
+  CIRCLES[editIdx].n=this.value;
+  etitle.textContent=this.value||'New circle';
+  renderLists();syncHash();
+};
+
+/* ---- search results ---- */
+function renderRes(){
+  var q=qEl.value.trim();
+  if(!q){qres.innerHTML='';return;}
+  var hits=search(q);
+  if(!hits.length){qres.innerHTML='<div class="note">No boulder matches \u201c'+esc(q)+'\u201d.</div>';return;}
+  qres.innerHTML=hits.map(function(e){var s=SECT[e[4]],on=inCircle(e[0]);
+    return '<div class="res'+(on?' on':'')+'" data-id="'+e[0]+'">'+
+      '<span class="nm">'+esc(e[1])+stars(e[3]<0?null:e[3])+'<small>'+esc(CRAGS[s[0]][1]+' \u00b7 '+s[1])+'</small></span>'+
+      '<span class="gr">'+esc(e[2])+'</span>'+
+      '<button class="add" aria-label="Add to this circle">'+(on?'\u2713':'+')+'</button></div>';
+  }).join('');
+}
+qres.onclick=function(ev){
+  var row=ev.target.closest('.res');if(!row||editIdx<0)return;
+  var id=+row.dataset.id, added=inCircle(id)?!removeFromCircle(id,editIdx):addToCircle(id,editIdx);
+  renderRes();renderPicked();renderLists();render(false,added?id:null);
+};
+var qT;qEl.oninput=function(){clearTimeout(qT);qT=setTimeout(renderRes,120);};
+
+/* ---- the boulders of the circle being edited ---- */
+function renderPicked(){
+  if(editIdx<0)return;
+  var ids=CIRCLES[editIdx].ids;
+  ecnt.textContent=ids.length?ids.length+' boulders':'';
+  if(!ids.length){myListEl.innerHTML='<div class="note">Search above and tap <b>+</b>, or paste a list of names. This circle gets its own walking route, and the <b>Share</b> link carries it.</div>';return;}
+  myListEl.innerHTML=ids.map(function(id){var b=toB(BY_ID[id]);
+    return '<div class="myrow" data-id="'+b.id+'">'+
+      '<span class="nm">'+esc(b.name)+' <b>'+esc(b.grade)+'</b><br><small style="color:#888">'+esc(b.label)+'</small></span>'+
+      '<button class="go" title="Show on map">\u25ce</button><button class="del" title="Remove">\u00d7</button></div>';
+  }).join('');
+}
+myListEl.onclick=function(ev){
+  var row=ev.target.closest('.myrow');if(!row)return;
+  var id=+row.dataset.id;
+  if(ev.target.classList.contains('del')){removeFromCircle(id,editIdx);renderRes();renderPicked();renderLists();render(false);return;}
+  if(ev.target.classList.contains('go')){var b=toB(BY_ID[id]);map.setView([b.lat,b.lng],17);if(isMobile())closePanel();}
+};
+
+/* ---- paste ---- */
 document.getElementById('myPaste').onclick=function(){pasteBox.hidden=!pasteBox.hidden;if(!pasteBox.hidden)pasteTa.focus();};
 document.getElementById('pasteCancel').onclick=function(){pasteBox.hidden=true;pasteTa.value='';pasteMsg.textContent='';};
 document.getElementById('pasteAdd').onclick=function(){
+  if(editIdx<0)return;
   var rows=parsePasted(pasteTa.value), added=0, dup=0, fixed=[], sugg=[], miss=[];
   rows.forEach(function(r){
     var e=matchName(r.name,r.grade);
     if(!e){
       var f=fuzzy(r.name,r.grade);
-      if(f&&f.kind==='auto'){e=f.e;fixed.push(r.name+' → '+f.e[1]);}
+      if(f&&f.kind==='auto'){e=f.e;fixed.push(r.name+' \u2192 '+f.e[1]);}
       else if(f){sugg.push([r.name,f.e]);return;}
       else{miss.push(r.name);return;}
     }
-    if(addToCircle(e[0]))added++;else dup++;
+    if(addToCircle(e[0],editIdx))added++;else dup++;
   });
   var msg=['<b>Added '+added+'</b> of '+rows.length+'.'];
   if(dup)msg.push(dup+' already in the circle.');
   if(fixed.length)msg.push('Spelling fixed: '+fixed.map(esc).join(', ')+'.');
   if(sugg.length)msg.push('<br>Did you mean: '+sugg.map(function(s){
-    return '<button class="mini sug" data-id="'+s[1][0]+'">'+esc(s[0])+' → '+esc(s[1][1])+' ('+esc(s[1][2])+')</button>';
+    return '<button class="mini sug" data-id="'+s[1][0]+'">'+esc(s[0])+' \u2192 '+esc(s[1][1])+' ('+esc(s[1][2])+')</button>';
   }).join(' '));
   if(miss.length)msg.push('<br>Not found: '+miss.map(esc).join(', ')+'.');
   pasteMsg.innerHTML=msg.join(' ');
-  if(added){pasteTa.value='';renderRes();renderMine();render(true);}
+  if(added){pasteTa.value='';renderRes();renderPicked();renderLists();render(true);}
 };
 // One tap accepts a suggested name.
 pasteMsg.onclick=function(ev){
-  var b=ev.target.closest?ev.target.closest('.sug'):null;if(!b)return;
-  addToCircle(+b.dataset.id);b.parentNode.removeChild(b);
-  renderRes();renderMine();render(true);
+  var b=ev.target.closest?ev.target.closest('.sug'):null;if(!b||editIdx<0)return;
+  addToCircle(+b.dataset.id,editIdx);b.parentNode.removeChild(b);
+  renderRes();renderPicked();renderLists();render(true);
 };
 
-var IDX=null;
-function buildIdx(){IDX=ALL.map(function(e){var s=SECT[e[4]];
-  return norm(e[1]+' '+e[2]+' '+CRAGS[s[0]][1]+' '+s[1]);});}
-function search(q){
-  if(!IDX)buildIdx();
-  var toks=norm(q).trim().split(/\s+/).filter(Boolean);if(!toks.length)return [];
-  var hits=[];
-  for(var i=0;i<ALL.length&&hits.length<400;i++){
-    var t=IDX[i],ok=true;
-    for(var k=0;k<toks.length;k++){if(t.indexOf(toks[k])<0){ok=false;break;}}
-    if(!ok)continue;
-    var nm=norm(ALL[i][1]);
-    // Name matches rank above crag/sector matches.
-    var rank=nm.indexOf(toks[0])===0?0:(nm.indexOf(toks[0])>=0?1:2);
-    hits.push([rank,ALL[i]]);
-  }
-  hits.sort(function(a,b){return a[0]-b[0];});
-  return hits.slice(0,40).map(function(h){return h[1];});
-}
+/* ---- hidden list boulders ---- */
+document.getElementById('hiddenNote').onclick=function(ev){
+  if(!ev.target.classList.contains('unhide'))return;
+  hideIds={};render(false);
+};
 
-var qEl=document.getElementById('q'), qres=document.getElementById('qres'), myListEl=document.getElementById('myList');
-var nameEl=document.getElementById('myName');
-function inCircle(id){return myIds.indexOf(id)>=0;}
-function toggleId(id){
-  var added=inCircle(id)?!removeFromCircle(id):addToCircle(id);
-  renderRes();renderMine();render(false,added?id:null);
-}
-// Buttons inside the map popups: add, remove, or hide a single boulder.
+/* ---- buttons inside the map popups ---- */
 document.addEventListener('click',function(ev){
   var btn=ev.target.closest?ev.target.closest('.pbtn'):null;if(!btn)return;
   var id=+btn.dataset.id;
   if(btn.classList.contains('rm'))removeFromCircle(id);
   else if(btn.classList.contains('ad'))addToCircle(id);
   else if(btn.classList.contains('hd'))hideIds[id]=1;
-  map.closePopup();renderRes();renderMine();render(false);
+  map.closePopup();renderRes();renderPicked();renderLists();render(false);
 });
-function renderRes(){
-  var q=qEl.value.trim();
-  if(!q){qres.innerHTML='';return;}
-  var hits=search(q);
-  if(!hits.length){qres.innerHTML='<div class="note">No boulder matches “'+esc(q)+'”.</div>';return;}
-  qres.innerHTML=hits.map(function(e){var s=SECT[e[4]],on=inCircle(e[0]);
-    return '<div class="res'+(on?' on':'')+'" data-id="'+e[0]+'">'+
-      '<span class="nm">'+esc(e[1])+stars(e[3]<0?null:e[3])+'<small>'+esc(CRAGS[s[0]][1]+' · '+s[1])+'</small></span>'+
-      '<span class="gr">'+esc(e[2])+'</span>'+
-      '<button class="add" aria-label="Add to my circle">'+(on?'✓':'+')+'</button></div>';
-  }).join('');
-}
-qres.onclick=function(ev){var row=ev.target.closest('.res');if(row)toggleId(+row.dataset.id);};
-var qT;qEl.oninput=function(){clearTimeout(qT);qT=setTimeout(renderRes,120);};
-
-function renderMine(){
-  if(!myIds.length){myListEl.innerHTML='<div class="note">Search above and tap <b>+</b> to build your own circle. It gets its own walking route, and the <b>Share</b> link carries it (name included).</div>';return;}
-  var bs=myBoulders();
-  myListEl.innerHTML='<div class="listrow'+(myOn?' on':'')+'" id="myRow" style="--dot:'+MYCOL+'">'+
-      '<span class="box">'+(myOn?'✓':'')+'</span><span class="tt">'+esc(myName||'My circle')+
-      ' <span class="km">('+bs.length+')</span></span></div>'+
-    bs.map(function(b){return '<div class="myrow" data-id="'+b.id+'">'+
-      '<span class="nm">'+esc(b.name)+' <b>'+esc(b.grade)+'</b><br><small style="color:#888">'+esc(b.label)+'</small></span>'+
-      '<button class="go" title="Show on map">◎</button><button class="del" title="Remove">×</button></div>';
-    }).join('');
-  document.getElementById('myRow').onclick=function(){myOn=!myOn;renderMine();render(false);};
-}
-myListEl.onclick=function(ev){
-  var row=ev.target.closest('.myrow');if(!row)return;
-  var id=+row.dataset.id;
-  if(ev.target.classList.contains('del')){toggleId(id);return;}
-  if(ev.target.classList.contains('go')){var b=toB(BY_ID[id]);map.setView([b.lat,b.lng],17);if(isMobile())closePanel();}
-};
-nameEl.oninput=function(){myName=this.value;renderMine();syncHash();
-  document.title=(myName?myName+' · ':'')+'Kjuge Circuits';};
-document.getElementById('hiddenNote').onclick=function(ev){
-  if(!ev.target.classList.contains('unhide'))return;
-  hideIds={};render(false);
-};
-document.getElementById('myClear').onclick=function(){
-  if(myIds.length&&!confirm('Remove all '+myIds.length+' boulders from your circle?'))return;
-  myIds=[];myName='';nameEl.value='';myOn=true;renderRes();renderMine();render(false);
-};
 
 var layer=L.layerGroup().addTo(map);
 // Dot size, plus a bigger invisible tap target (phones need ~44px across).
@@ -469,8 +591,10 @@ function render(fit,focusId){
   var nHid=Object.keys(hideIds).length;
   document.getElementById('hiddenNote').innerHTML=nHid?nHid+' boulder'+(nHid>1?'s':'')+' hidden. <a href="#" class="unhide" onclick="return false">Show all</a>':'';
   var sel=[];DATA.forEach(function(_,i){if(listOn[i])sel.push(i);});
-  var mine=(myOn?myBoulders():[]);
-  var col=mine.length&&!sel.length?MYCOL:(sel.length===1&&!mine.length?DATA[sel[0]].color:'#e6194B');
+  var mine=mineBoulders();
+  var onC=[];CIRCLES.forEach(function(c,i){if(c.on&&c.ids.length)onC.push(i);});
+  // One list or one circle keeps its own colour; a mix is drawn in red.
+  var col=(!sel.length&&onC.length===1)?circleColor(onC[0]):(sel.length===1&&!mine.length?DATA[sel[0]].color:'#e6194B');
   var stopsMap={}, parkings=[];
   sel.forEach(function(li){
     var d=DATA[li];if(d.parking)parkings.push(d.parking);
@@ -481,8 +605,8 @@ function render(fit,focusId){
       vis.forEach(function(b){if(!s.seen[b.url]){s.seen[b.url]=1;s.b.push(b);}});
     });
   });
-  // My circle joins the same stops, but the grade/character/rating filters
-  // never drop it: those boulders were picked by hand.
+  // Circles join the same stops, but the grade/character/rating filters
+  // never drop them: those boulders were picked by hand.
   mine.forEach(function(b){
     var key=b.lat.toFixed(6)+','+b.lng.toFixed(6);
     var s=stopsMap[key]||(stopsMap[key]={lat:b.lat,lng:b.lng,label:b.label,seen:{},b:[]});
@@ -510,7 +634,7 @@ function render(fit,focusId){
       var id=b.id||ID_BY_URL[b.url];
       var act=!id?'':(b.mine
         ? '<button class="pbtn rm" data-id="'+id+'">− remove</button>'
-        : '<button class="pbtn ad" data-id="'+id+'">+ my circle</button><button class="pbtn hd" data-id="'+id+'">hide</button>');
+        : '<button class="pbtn ad" data-id="'+id+'">+ '+esc(CIRCLES.length?circleName(targetIdx()):'new circle')+'</button><button class="pbtn hd" data-id="'+id+'">hide</button>');
       return '<a href="'+b.url+'" target="_blank" rel="noopener">'+b.name+'</a> ('+b.grade+')'+stars(b.rating)+ch+tag+act;
     }).join('<br>');
     // Visible dot: only decoration, so it never steals a tap from the hit area.
@@ -527,7 +651,7 @@ function render(fit,focusId){
   });
   if(line.length>1)L.polyline(line,{pane:'routePane',color:col,weight:4,opacity:.6,interactive:false}).addTo(layer);
   if(park)L.marker(park).addTo(layer).bindPopup('Parking / start');
-  var lbl=(myOn&&myIds.length&&myName?myName+' · ':'');
+  var lbl=(!sel.length&&onC.length===1?circleName(onC[0])+' · ':'');
   document.getElementById('stats').textContent=lbl+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km';
   var all=line.concat(park?[park]:[]);
   // Refit when asked, and when a newly added boulder would sit off-screen.
@@ -538,11 +662,10 @@ function render(fit,focusId){
 }
 if(!isMobile()) openPanel();
 window.addEventListener('resize',function(){if(!isMobile()){panel.classList.remove('hidden');}});
-parseHash();syncL();syncG();syncC();syncR();
-nameEl.value=myName;
-if(myName)document.title=myName+' · Kjuge Circuits';
+parseHash();syncG();syncC();syncR();
 // A shared circle is the point of the link: show it alone unless lists were shared too.
-if(myIds.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
-syncL();renderRes();renderMine();
+if(CIRCLES.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
+if(CIRCLES.length===1&&CIRCLES[0].n)document.title=CIRCLES[0].n+' · Kjuge Circuits';
+renderLists();
 render(true);
 </script></body></html>
