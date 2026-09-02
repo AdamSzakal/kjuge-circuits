@@ -14,19 +14,20 @@ https://github.com/user-attachments/assets/d47d994f-6837-40e9-9478-73f7489bf25a
 
 ## Open it
 
-Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + CARTO tiles from CDN, all data embedded). No build step, no server.
+Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no server.
 
 ### Features
 - **Search** — free-text search over **every** boulder in the dataset (3138 boulders across 14 crags), matching name, grade, crag and sector.
-- **My circle** — add any boulder from the search results to your own circle, name it, and get a walking route through it just like the built-in lists. Your picks ignore the grade/character/rating filters, and the **Share** link carries the whole circle (ids + name), so no backend or login is needed.
+- **My circle** — add any boulder from the search results to your own circle, name it, and get a walking route through it just like the built-in lists. The **Share** link carries every circle (ids + names), so no backend or login is needed.
 - **Paste a list** — paste problem names (one per line, comma separated, or `Name, Grade` pairs) to fill a circle in one go. Numbering, quotes and a header row are stripped; the grade breaks the tie when two crags share a boulder name; anything unmatched is reported back.
 - **Remove a boulder** — the × in the *My circle* list, or the − **remove** button in the map popup. For boulders of the built-in lists, the popup **hide** button drops them from the route; the *Lists* section then offers **Show all**.
 - **Lists** — multi-select checkboxes; selecting several lists merges their boulders, de-duplicates shared sectors, and recomputes one combined walking route.
-- **Grade filter** — tap-chips for L … 7A.
+- **Filters** — grade, character and star rating, applied to everything drawn on the map: the top-lists *and* your own circles. Grade chips cover the whole dataset scale (3 … 8C, plus ungraded); a boulder of a circle that a filter removes is marked *filtered out* in the editor.
 - **Character filter** — 13 characteristics scraped from 27crags (technical, mental, slopers, crimpers, slab, powerful, dangerous, crack, jugs, endurance, pockets, dyno, traverse). Shows boulders with *any* selected characteristic.
 - **Shortest route** — nearest-neighbour + 2-opt TSP over the distinct sectors, anchored at the nearest parking, recomputed in-browser whenever the selection/filters change.
 - **Popups** — each stop lists its boulders with grade, ⭐ rating (0–3), characteristics, and a link to the 27crags page.
 - **Share** — the current selection (lists + grade + character filters) is encoded in the URL hash; the **Share** button copies a link that reopens the exact same circuit. No backend required.
+- **Base map** — OpenTopoMap: contour lines and forest tracks for the walk-in. Free for light use, no API key.
 - **Mobile** — full-screen map with a bottom-sheet filter panel and touch-sized controls; desktop keeps a docked side panel.
 
 A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](ROUTES.md).
