@@ -17,6 +17,10 @@ https://github.com/user-attachments/assets/d47d994f-6837-40e9-9478-73f7489bf25a
 Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + CARTO tiles from CDN, all data embedded). No build step, no server.
 
 ### Features
+- **Search** — free-text search over **every** boulder in the dataset (3138 boulders across 14 crags), matching name, grade, crag and sector.
+- **My circle** — add any boulder from the search results to your own circle, name it, and get a walking route through it just like the built-in lists. Your picks ignore the grade/character/rating filters, and the **Share** link carries the whole circle (ids + name), so no backend or login is needed.
+- **Paste a list** — paste problem names (one per line, comma separated, or `Name, Grade` pairs) to fill a circle in one go. Numbering, quotes and a header row are stripped; the grade breaks the tie when two crags share a boulder name; anything unmatched is reported back.
+- **Remove a boulder** — the × in the *My circle* list, or the − **remove** button in the map popup. For boulders of the built-in lists, the popup **hide** button drops them from the route; the *Lists* section then offers **Show all**.
 - **Lists** — multi-select checkboxes; selecting several lists merges their boulders, de-duplicates shared sectors, and recomputes one combined walking route.
 - **Grade filter** — tap-chips for L … 7A.
 - **Character filter** — 13 characteristics scraped from 27crags (technical, mental, slopers, crimpers, slab, powerful, dangerous, crack, jugs, endurance, pockets, dyno, traverse). Shows boulders with *any* selected characteristic.
@@ -47,6 +51,8 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `routes.json` | Precomputed per-list TSP order + distance |
 | `tags_by_path.json` | Scraped characteristics per boulder |
 | `boulder_urls.json` | All 215 boulder URLs |
+| `all_boulders.json` | Search index of every boulder in the cached crags (crags, sectors, routes) |
+| `build_all.js` | Builds `all_boulders.json` from `api/*.json` and injects it into `index.html` |
 | `api/*.json` | Cached 27crags crag API responses (routes + sectors + parking) |
 | `scrape.js` / `scrape_min.js` | The in-session character scraper |
 
