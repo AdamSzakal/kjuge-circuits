@@ -9,8 +9,10 @@
  * Shapes (kept short on purpose, the file is embedded in the page):
  *   CRAGS[i] = [slug, name, parkingLat|null, parkingLng|null]
  *   SECT[i]  = [cragIdx, sectorName, lat, lng]
- *   ALL[i]   = [routeId, name, grade, rating, sectIdx, paramId]
+ *   ALL[i]   = [routeId, name, grade, rating, sectIdx, paramId, ascents, info]
  *              paramId is "" when it is just the slug of the name.
+ *              ascents is the public logged-ascent count (0 when none).
+ *              info is the public route description ("" when none).
  */
 const fs = require('fs');
 const path = require('path');
@@ -53,6 +55,8 @@ for (const file of fs.readdirSync(API_DIR).sort()) {
       r.rating == null ? -1 : +(+r.rating).toFixed(1),
       si,
       slug(r.name) === r.param_id ? '' : r.param_id,
+      r.ascents_done_count || 0,
+      (r.info || '').trim(),
     ]);
   }
 }
