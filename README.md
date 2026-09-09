@@ -2,7 +2,7 @@
 
 Interactive walking-route planner for the **Kjugekull** and **Around Ivösjön** bouldering top-lists (Carl Nilsask, 2021) and for the eight **Problem styles** lists of the Kjugekull guidebook.
 
-It also carries **Affonsos Darlings**, a 33-problem warm-up circle of Kjugekull classics (3+ to 5+) proposed by Affonso, and **Jacobs running**, 24 boulders chosen by the machine from the crag data alone (see below).
+It also carries **Affonsos Darlings**, a 33-problem warm-up circle of Kjugekull classics (3+ to 5+) proposed by Affonso, and **Jacobs Running**, 24 boulders chosen by the machine from the crag data alone (see below).
 
 The four top-lists are the work of **Carl Nilsask** (2021) — see the [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing). The eight style lists (*The highballs*, *The slabs*, *The mantles*, *The Bucket list*, *The traverses*, *The overhangs*, *The dynos*, *The weird ones*) come from the "Problem styles" page of the printed Kjugekull guidebook.
 
@@ -57,11 +57,11 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `boulder_urls.json` | All 215 boulder URLs |
 | `all_boulders.json` | Search index of every boulder in the cached crags (crags, sectors, routes) |
 | `build_all.js` | Builds `all_boulders.json` from `api/*.json` and injects it into `index.html` |
-| `build_lists.js` | Holds the eight guidebook style lists, *Affonsos Darlings* and *Jacobs running*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
+| `build_lists.js` | Holds the eight guidebook style lists, *Affonsos Darlings* and *Jacobs Running*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
 | `api/*.json` | Cached 27crags crag API responses (routes + sectors + parking) |
 | `scrape.js` / `scrape_min.js` | The in-session character scraper |
 
-## Jacobs running — how the machine chose
+## Jacobs Running — how the machine chose
 
 No guidebook, only the crag data:
 

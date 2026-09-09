@@ -189,7 +189,7 @@ const STYLE_LISTS = [
    * asked to give more than two problems. Two swaps by hand afterwards put a
    * real dyno and the classic mantle in place of two untagged fillers.
    * Result: 24 boulders, 3+ to 7C+, all 13 characteristics, ~2.0 km. */
-  { title: 'Jacobs running', color: '#334155', group: 'Community', items: [
+  { title: 'Jacobs Running', color: '#334155', group: 'Community', items: [
     ['Skottlinjen', '3+'],
     ['GT-sprickan', '4'],
     ['Ängsareten', '5'],
