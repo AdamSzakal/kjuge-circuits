@@ -19,8 +19,9 @@ const TAGS = path.join(__dirname, 'tags_by_path.json');
 const HTML = path.join(__dirname, 'index.html');
 
 // Colours continue the palette of the four PDF lists.
+// `group` only sorts the lists in the app panel.
 const STYLE_LISTS = [
-  { title: 'The highballs', color: '#911eb4', items: [
+  { title: 'The highballs', color: '#911eb4', group: 'Guidebook styles', items: [
     ['Alla vill till himmelen...', '7C+'],
     ['Crescendo', '7C'],
     ['Regretto', '7C'],
@@ -38,7 +39,7 @@ const STYLE_LISTS = [
     ['Ehmanns elddop', '6A'],
     ['Paraffin', '5+'],
   ]},
-  { title: 'The slabs', color: '#008080', items: [
+  { title: 'The slabs', color: '#008080', group: 'Guidebook styles', items: [
     ['Låååångsamt, låååångsamt', '7B'],
     ['Gonzo', '7B'],
     ['Delikat spagat', '7B'],
@@ -56,7 +57,7 @@ const STYLE_LISTS = [
     ['Jag hann först!', 'L'],
     ['Hawaii', 'L'],
   ]},
-  { title: 'The mantles', color: '#9A6324', items: [
+  { title: 'The mantles', color: '#9A6324', group: 'Guidebook styles', items: [
     ['Djävulen', '7A'],
     ['Butch', '7A'],
     ['Fubbick', '6C+'],
@@ -74,7 +75,7 @@ const STYLE_LISTS = [
     ['Mr Mantle direkt', '5'],
     ['Flora', 'L'],
   ]},
-  { title: 'The Bucket list', color: '#800000', items: [
+  { title: 'The Bucket list', color: '#800000', group: 'Guidebook styles', items: [
     ['Lithium lågstart', '8A'],
     ['Alla vill till himmelen...', '7C+'],
     ['Moby Dick', '7B+'],
@@ -92,7 +93,7 @@ const STYLE_LISTS = [
     ['Nä, men Jeppe', '6A+'],
     ['Mandomsprovet', '6A'],
   ]},
-  { title: 'The traverses', color: '#f032e6', items: [
+  { title: 'The traverses', color: '#f032e6', group: 'Guidebook styles', items: [
     ['Lex Luthor', '7C'],
     ['Sickman', '7B+'],
     ['Plåt-Nicklas', '7B'],
@@ -104,7 +105,7 @@ const STYLE_LISTS = [
     ['Olssons travers', '6A'],
     ['Kristallbandet', 'L'],
   ]},
-  { title: 'The overhangs', color: '#000075', items: [
+  { title: 'The overhangs', color: '#000075', group: 'Guidebook styles', items: [
     ['Hidden Dragon', '8B'],
     ['Dulcinea', '8A+'],
     ['Lithium lågstart', '8A'],
@@ -116,7 +117,7 @@ const STYLE_LISTS = [
     ['The 4-layer man in the...', '7A+'],
     ['Ken Titan', '7A'],
   ]},
-  { title: 'The dynos', color: '#469990', items: [
+  { title: 'The dynos', color: '#469990', group: 'Guidebook styles', items: [
     ['Forza', '7B+'],
     ['Stearin', '7B'],
     ['Rhinestone dyno', '7A+'],
@@ -128,7 +129,7 @@ const STYLE_LISTS = [
     ['Perssons dyno', '6A+'],
     ['En dyna', '6A'],
   ]},
-  { title: 'The weird ones', color: '#808000', items: [
+  { title: 'The weird ones', color: '#808000', group: 'Guidebook styles', items: [
     ['Köttbullen', '7B'],
     ['Snurre Sprätt', '6B+'],
     ['Miss Tricker', '6B+'],
@@ -139,6 +140,44 @@ const STYLE_LISTS = [
     ['Relativitetsteorin', '5'],
     ['Lipphoppet', ''],
     ['Astroman', ''],
+  ]},
+  /* A warm-up circle of Kjugekull classics, L-5+, proposed by Affonso. New
+   * lists go last, so the list numbers of older share links keep pointing at
+   * the same list. */
+  { title: 'Affonsos Darlings', color: '#00b8d9', group: 'Community', items: [
+    ['Kaffe', '4+'],
+    ['Cappuccino', '4+'],
+    ['Banracing', '5'],
+    ['Svamp Bob', '5+'],
+    ['Vandraren', '4+'],
+    ['Den långa färden', '4+'],
+    ['Hålfoten', '4'],
+    ['Hälen', '4'],
+    ['Nageln', '5'],
+    ['Fotsvamp', '5'],
+    ['Sprickan', '4+'],
+    ['Två goa juggar', '5'],
+    ['Bobba Fett', '4'],
+    ['Penny Black', '4'],
+    ['Frimärkssamlaren', '5+'],
+    ['Den gamla dodgen', '5'],
+    ['Tant Beas ofantliga spargris', '3'],
+    ['Den vassa eggen', '4'],
+    ['NASA', '5'],
+    ['Houston we have a boulder', '4'],
+    ['Snakes and ladders', '5+'],
+    ['Kolera', '5'],
+    ['Jürgen direkt', '5'],
+    ['Trapp', '5+'],
+    ['Tripp', '5+'],
+    ['GT-sprickan', '4'],
+    ['Guinness', '5'],
+    ['Flottsvampen', '4'],
+    ['Jag hann först!', '5'],
+    ['Schweizerosten', '5'],
+    ['Mögelosten', '5'],
+    ['Subway to hell', '5'],
+    ['Bit av kaka', '4+'],
   ]},
 ];
 
@@ -296,7 +335,7 @@ function buildLayer(list) {
   });
   const n = markers.reduce(function (a, m) { return a + m.b.length; }, 0);
   problems.push({ title: list.title, n: n, of: list.items.length, missing: missing, notes: notes });
-  return { title: list.title, color: list.color, markers: markers, parking: PARKING, dist: Math.round(dist) };
+  return { title: list.title, color: list.color, group: list.group, markers: markers, parking: PARKING, dist: Math.round(dist) };
 }
 
 /* ---- write map_data.json and index.html ---- */
@@ -313,6 +352,7 @@ map.layers.forEach(function (l) {
 // The four PDF lists stay; the style lists are rebuilt from scratch every run.
 const styleTitles = STYLE_LISTS.map(function (l) { return l.title; });
 const keep = map.layers.filter(function (l) { return styleTitles.indexOf(l.title) < 0; });
+keep.forEach(function (l) { l.group = 'Top-lists'; });   // the four PDF lists
 map.layers = keep.concat(STYLE_LISTS.map(buildLayer));
 fs.writeFileSync(MAP_JSON, JSON.stringify(map));
 
