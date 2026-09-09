@@ -179,6 +179,42 @@ const STYLE_LISTS = [
     ['Subway to hell', '5'],
     ['Bit av kaka', '4+'],
   ]},
+  /* Picked by the machine, from the crag API itself, not from a guidebook.
+   * Every Kjugekull boulder with at least 15 logged ascents was scored with a
+   * Bayesian rating - (v*R + m*C)/(v+m), v = ascents, R = its rating, C = the
+   * crag mean 1.23, m = 20 - so a 3.0 from four people cannot beat a 2.2 from
+   * three hundred. A simulated annealing run then chose 24 of them under a
+   * fixed grade ladder (6 easy, 7 mid, 4 upper, 5 hard, 2 elite), rewarding
+   * covered characteristics and punishing walking distance and any sector
+   * asked to give more than two problems. Two swaps by hand afterwards put a
+   * real dyno and the classic mantle in place of two untagged fillers.
+   * Result: 24 boulders, 3+ to 7C+, all 13 characteristics, ~2.0 km. */
+  { title: 'Jacobs running', color: '#334155', group: 'Community', items: [
+    ['Skottlinjen', '3+'],
+    ['GT-sprickan', '4'],
+    ['Ängsareten', '5'],
+    ['Hajfena', '5'],
+    ['Mr Mantel direkt', '5'],
+    ['Formalin', '5+'],
+    ['Ehmans sittstart', '6A'],
+    ['Duck', '6A'],
+    ['Mijares', '6A+'],
+    ['Perssons dyno', '6A+'],
+    ['Mållinjen', '6B'],
+    ['Mini Ghetto', '6B'],
+    ['Linds långa linje', '6B+'],
+    ['Eskapism', '6C'],
+    ['Silikon', '6C'],
+    ['Flaming star', '6C'],
+    ['Colosseum', '6C+'],
+    ['Babar', '7A'],
+    ['Monolith', '7A+'],
+    ['Ahab', '7A+'],
+    ['Caspersens arete', '7A+'],
+    ['Det gåtfulla folket', '7B'],
+    ['Sonic', '7B+'],
+    ['Alla vill till himmelen...', '7C+'],
+  ]},
 ];
 
 /* ---- the cached crag API ---- */
@@ -351,8 +387,11 @@ map.layers.forEach(function (l) {
 
 // The four PDF lists stay; the style lists are rebuilt from scratch every run.
 const styleTitles = STYLE_LISTS.map(function (l) { return l.title; });
-const keep = map.layers.filter(function (l) { return styleTitles.indexOf(l.title) < 0; });
-keep.forEach(function (l) { l.group = 'Top-lists'; });   // the four PDF lists
+// Only the four PDF lists survive a run; every other layer is rebuilt below,
+// so a renamed list cannot leave its old self behind. The PDF lists are the
+// ones whose title reads "<crag> | <list>".
+const keep = map.layers.filter(function (l) { return l.title.indexOf(' | ') > 0 && styleTitles.indexOf(l.title) < 0; });
+keep.forEach(function (l) { l.group = 'Top-lists'; });
 map.layers = keep.concat(STYLE_LISTS.map(buildLayer));
 fs.writeFileSync(MAP_JSON, JSON.stringify(map));
 

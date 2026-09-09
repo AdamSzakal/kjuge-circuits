@@ -2,7 +2,7 @@
 
 Interactive walking-route planner for the **Kjugekull** and **Around Ivösjön** bouldering top-lists (Carl Nilsask, 2021) and for the eight **Problem styles** lists of the Kjugekull guidebook.
 
-It also carries **Affonsos Darlings**, a 33-problem warm-up circle of Kjugekull classics (3+ to 5+) proposed by Affonso.
+It also carries **Affonsos Darlings**, a 33-problem warm-up circle of Kjugekull classics (3+ to 5+) proposed by Affonso, and **Jacobs running**, 24 boulders chosen by the machine from the crag data alone (see below).
 
 The four top-lists are the work of **Carl Nilsask** (2021) — see the [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing). The eight style lists (*The highballs*, *The slabs*, *The mantles*, *The Bucket list*, *The traverses*, *The overhangs*, *The dynos*, *The weird ones*) come from the "Problem styles" page of the printed Kjugekull guidebook.
 
@@ -57,9 +57,20 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `boulder_urls.json` | All 215 boulder URLs |
 | `all_boulders.json` | Search index of every boulder in the cached crags (crags, sectors, routes) |
 | `build_all.js` | Builds `all_boulders.json` from `api/*.json` and injects it into `index.html` |
-| `build_lists.js` | Holds the eight guidebook style lists and *Affonsos Darlings*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
+| `build_lists.js` | Holds the eight guidebook style lists, *Affonsos Darlings* and *Jacobs running*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
 | `api/*.json` | Cached 27crags crag API responses (routes + sectors + parking) |
 | `scrape.js` / `scrape_min.js` | The in-session character scraper |
+
+## Jacobs running — how the machine chose
+
+No guidebook, only the crag data:
+
+1. **Score every Kjugekull boulder** with at least 15 logged ascents by a Bayesian rating, `(v*R + m*C) / (v + m)` — `v` ascents, `R` its 27crags rating, `C` the crag mean (1.23), `m` = 20. A 3.0 from four people cannot outrank a 2.2 from three hundred.
+2. **Fix a grade ladder** so the circuit reads as a session: 6 easy (L–5+), 7 middle (6A–6B+), 4 upper (6C–6C+), 5 hard (7A–7B), 2 elite (7B+ and up).
+3. **Search** (simulated annealing, 12 restarts) for the 24 boulders that maximise total score, plus a bonus per covered characteristic and per distinct grade, minus the walking distance and minus any sector asked for more than two problems.
+4. **Two swaps by hand**: a real dyno (*Perssons dyno*) and the classic mantle (*Mr Mantel direkt*) in place of two untagged fillers.
+
+Result: 24 boulders, 3+ to 7C+, **all 13 characteristics**, 22 stops, **2.02 km**.
 
 ## Notes / caveats
 - The two **Kjugekull** lists are a single crag — a tight ~3 km walkable loop.
