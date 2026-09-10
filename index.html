@@ -1484,8 +1484,22 @@ function drawMe(){
     meDot.setLatLng(at);meRing.setLatLng(at).setRadius(ME.acc);
   }
 }
-// "240 m" close by, "1.2 km" further out.
-function fmtDist(m){return m<950?Math.round(m/10)*10+' m':(m/1000).toFixed(1)+' km';}
+// "240 m" close by, "1.2 km" further out, "480 km" from another county.
+function fmtDist(m){
+  if(m<950)return Math.round(m/10)*10+' m';
+  if(m<10000)return (m/1000).toFixed(1)+' km';
+  return Math.round(m/1000)+' km';
+}
+// How far the nearest stop of the walk is from a point.
+var NEAR_LIMIT=5000;
+function distToWalk(lat,lng){
+  var best=Infinity;
+  WALK.forEach(function(w){
+    var d=hav([lat,lng],[w.lat,w.lng]);
+    if(d<best)best=d;
+  });
+  return best;
+}
 function stopLocate(){
   if(meWatch!=null)navigator.geolocation.clearWatch(meWatch);
   meWatch=null;following=false;ME=null;
@@ -1496,9 +1510,22 @@ function startLocate(){
   if(!navigator.geolocation){offNoteGeo('This browser cannot report where you are.');return;}
   locBtn.classList.add('wait');
   meWatch=navigator.geolocation.watchPosition(function(p){
-    locBtn.classList.remove('wait');locBtn.classList.add('on');
+    var first=(ME===null);
+    locBtn.classList.remove('wait');
     ME={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.max(p.coords.accuracy||0,5)};
     drawMe();renderWalk();
+    /* Somebody planning a trip from home is a long way from the rock. Carrying
+     * the map there would throw the whole circuit off the screen, so the first
+     * fix only takes the map with it when it lands near the walk. Tapping the
+     * button again overrides this: that is somebody asking on purpose. */
+    if(first&&WALK.length){
+      var d=distToWalk(ME.lat,ME.lng);
+      if(d>NEAR_LIMIT){
+        following=false;
+        offNoteGeo('You are '+fmtDist(d)+' from this circuit, so the map has stayed on the boulders. Tap the button again to go to yourself.');
+      }
+    }
+    locBtn.classList.toggle('on',following);
     if(following)map.setView([ME.lat,ME.lng],Math.max(map.getZoom(),16),{animate:false});
   },function(err){
     locBtn.classList.remove('wait','on');
@@ -1516,7 +1543,7 @@ function offNoteGeo(msg){
 }
 locBtn.onclick=function(){
   if(meWatch==null){startLocate();return;}
-  if(!following&&ME){following=true;locBtn.classList.add('on');
+  if(!following&&ME){following=true;locBtn.classList.add('on');offNoteGeo('');
     map.setView([ME.lat,ME.lng],Math.max(map.getZoom(),16));return;}
   stopLocate();
 };
