@@ -303,7 +303,10 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 #lb[hidden]{display:none}
 #lbImg{max-width:100%;max-height:78vh;object-fit:contain;border-radius:6px}
-#lbCap{color:#fff;font-size:13px;margin-top:14px;text-align:center;max-width:600px;line-height:1.5}
+#lbCap{color:#fff;font-size:13.5px;margin-top:14px;text-align:center;max-width:600px;line-height:1.9}
+#lbCap a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);padding-bottom:1px}
+#lbCap a:hover,#lbCap a:active{border-bottom-color:#fff}
+#lbCap .lbg{color:#9aa}
 #lbCap b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
   color:#9aa;margin-bottom:4px;font-weight:700}
 #lbClose{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;
@@ -938,9 +941,13 @@ function circuitColor(i){return PAL[i%PAL.length];}
 function circuitName(i){return CIRCUITS[i].n||('Circuit '+(i+1));}
 
 // Turns one ALL row into the same shape of boulder the map popups already use.
+// The 27crags page of one boulder, from its row in the full index.
+function routeUrl(e){
+  return 'https://27crags.com/crags/'+CRAGS[SECT[e[4]][0]][0]+'/routes/'+(e[5]||bslug(e[1]));
+}
 function toB(e){
   var s=SECT[e[4]], c=CRAGS[s[0]];
-  var url='https://27crags.com/crags/'+c[0]+'/routes/'+(e[5]||bslug(e[1]));
+  var url=routeUrl(e);
   return {id:e[0],name:e[1],grade:e[2],rating:e[3]<0?null:e[3],chars:CHARS_BY_URL[url]||[],
     url:url,lat:s[2],lng:s[3],label:c[1]+' \u00b7 '+s[1],cragIdx:s[0],mine:true};
 }
@@ -1371,10 +1378,16 @@ function openPhoto(si,ti){
   var t=SECT[si][5][ti];
   if(!t)return;
   lbImg.src=photoUrl(t[0],true);
-  // The picture names the boulders drawn on it, the way a guidebook topo does.
+  // The picture names the boulders drawn on it, the way a guidebook topo does,
+  // and each name opens that line on 27crags. A phone follows the link in the
+  // same tab, as the stop rows do, so iOS keeps it rather than handing the
+  // address to the 27crags app.
   var on=t.slice(1).map(function(id){return BY_ID[id];}).filter(Boolean);
+  var tgt=isMobile()?'':' target="_blank" rel="noopener"';
   lbCap.innerHTML=on.length?
-    '<b>On this topo</b>'+on.map(function(e){return esc(e[1])+' <span style="color:#9aa">'+esc(e[2])+'</span>';}).join(' · '):
+    '<b>On this topo</b>'+on.map(function(e){
+      return '<a href="'+routeUrl(e)+'"'+tgt+'>'+esc(e[1])+' <span class="lbg">'+esc(e[2])+'</span></a>';
+    }).join(' · '):
     '<b>'+esc(SECT[si][1])+'</b>';
   lb.hidden=false;
 }
