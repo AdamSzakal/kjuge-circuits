@@ -17,7 +17,9 @@ Given the four PDF top-lists, this project takes every boulder graded **L to 7A*
 
 ## Open it
 
-Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no server. Map tiles are cached in the browser as you go, so it keeps working at the crag with no signal.
+Live at **[kjuge.netlify.app](https://kjuge.netlify.app)** — or open [`index.html`](index.html) straight from disk. It's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no bundler, no packages.
+
+Map tiles are cached in the browser as you go, so it keeps working at the crag with no signal. The hosted copy adds a service worker, which also keeps the page itself, Leaflet and the boulder photographs, and lets you install it to the home screen.
 
 ### Features
 - **Search** — free-text search over **every** boulder in the dataset (3141 boulders across 14 crags), matching name, grade, crag and sector.
@@ -35,7 +37,9 @@ Open [`index.html`](index.html) in any browser — it's a single self-contained 
 - **Share** — the current selection (lists + grade + character filters) is encoded in the URL hash; the **Share** button copies a link that reopens the exact same circuit. No backend required.
 - **Base map** — OpenTopoMap: contour lines and forest tracks for the walk-in. Free for light use, no API key.
 - **Ticks** — one tap on the ring of a boulder marks it done. The walk then counts what is left, on the day (*100 boulders · 59 stops · 3.13 km · 12 done*) and on every stop. A filter hides what you have finished. Ticks stay in this browser: a share link carries the circuit, not somebody else's ticklist.
-- **Offline** — map tiles are kept in IndexedDB, so a walk you have opened once draws again with no signal, and **Save this walk for offline** fetches the rest before you leave the car (about 90 tiles for the whole of Kjugekull). The page, its data and your ticks are already on the disk. Photographs are the exception: the 27crags storage host allows no copy to be kept, so a strip that cannot load takes itself off the stop.
+- **Where you are** — the crosshair button follows your position, drawn with its accuracy, and every line of the walk then says how far away it is, with the nearest stop marked. Satellites need no signal, so this is at its best in the woods. A drag of the map stops it following you.
+- **Offline** — **Save this walk for offline** takes the whole walk with you: map tiles into IndexedDB (about 90 for the whole of Kjugekull) and, when the app is opened from its web address, the photographs of every stop as well (1.5–3.7 MB for a style circuit). The page, its data and your ticks are already local. A tile drawn once draws again with no signal.
+- **Install it** — served over https the app registers a service worker and carries a manifest, so it installs to the home screen and opens cold with no signal. Opened from a file it works the same, minus the photographs: a browser gives no worker to a `file://` page, and the 27crags host allows no copy to be kept without one. A strip that cannot load takes itself off the stop.
 - **Dark** — the chrome follows the system. The map keeps its daylight in both, because contour lines and forest tracks read better that way.
 - **The sheet** — one bottom sheet holds everything, and it is always on screen. Its header is the way in: a grab bar, the search box, where the walk starts (*① Starts at Caféblocket*), the day in one line (*100 boulders · 59 stops · 3.13 km*), and a tab bar for **The walk**, **Circuits** and **Filters**. A tap on the grab bar, on a tab, or in the search box folds the list out; a second tap on the grab bar folds it back. A search takes the body over for as long as there is something in the box. A phone parks the header along the bottom edge, over a full-screen map that keeps the route clear of it; a big screen docks the same sheet at the left and starts unfolded.
 
@@ -66,6 +70,8 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `build_lists.js` | Holds the eight guidebook style lists, *Affonsos Darlings* and *Jacobs Running*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
 | `api/*.json` | Cached 27crags crag API responses (routes + sectors + parking) |
 | `scrape.js` / `scrape_min.js` | The in-session character scraper |
+| `sw.js` | Service worker: keeps the page, Leaflet and the photographs. Only runs when the app is served |
+| `manifest.webmanifest`, `icons/` | Install to the home screen |
 | `record_demo.js` | Rebuilds `docs/demo.gif` by driving Chrome over the DevTools Protocol (node built-ins + ffmpeg, no packages) |
 | `docs/demo.gif` | The walkthrough at the top of this file |
 
