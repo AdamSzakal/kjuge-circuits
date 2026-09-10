@@ -1516,15 +1516,10 @@ function startLocate(){
     drawMe();renderWalk();
     /* Somebody planning a trip from home is a long way from the rock. Carrying
      * the map there would throw the whole circuit off the screen, so the first
-     * fix only takes the map with it when it lands near the walk. Tapping the
-     * button again overrides this: that is somebody asking on purpose. */
-    if(first&&WALK.length){
-      var d=distToWalk(ME.lat,ME.lng);
-      if(d>NEAR_LIMIT){
-        following=false;
-        offNoteGeo('You are '+fmtDist(d)+' from this circuit, so the map has stayed on the boulders. Tap the button again to go to yourself.');
-      }
-    }
+     * fix only takes the map with it when it lands near the walk. The dot and
+     * the distances are still drawn, and tapping the button again goes there
+     * anyway: that is somebody asking on purpose. */
+    if(first&&WALK.length&&distToWalk(ME.lat,ME.lng)>NEAR_LIMIT)following=false;
     locBtn.classList.toggle('on',following);
     if(following)map.setView([ME.lat,ME.lng],Math.max(map.getZoom(),16),{animate:false});
   },function(err){
