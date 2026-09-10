@@ -9,14 +9,15 @@ The four top-lists are the work of **Carl Nilsask** (2021) — see the [original
 Given the four PDF top-lists, this project takes every boulder graded **L to 7A**, looks up each boulder's location on [27crags](https://27crags.com) (now thetopo.com), and plots the shortest walk through them all. It also supports live filtering by **grade**, **characteristics** (crimpers, slopers, slab, …) and **star rating**.
 
 
+![The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter](docs/demo.gif)
 
-https://github.com/user-attachments/assets/d47d994f-6837-40e9-9478-73f7489bf25a
+*Rebuilt from the live app by [`record_demo.js`](record_demo.js) — run it whenever the interface changes.*
 
 
 
 ## Open it
 
-Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no server.
+Open [`index.html`](index.html) in any browser — it's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no server. Map tiles are cached in the browser as you go, so it keeps working at the crag with no signal.
 
 ### Features
 - **Search** — free-text search over **every** boulder in the dataset (3141 boulders across 14 crags), matching name, grade, crag and sector.
@@ -33,6 +34,9 @@ Open [`index.html`](index.html) in any browser — it's a single self-contained 
 - **Photographs** — the topo pictures of the block, scrolled sideways. A tap opens the big one, captioned with the boulders drawn on it.
 - **Share** — the current selection (lists + grade + character filters) is encoded in the URL hash; the **Share** button copies a link that reopens the exact same circuit. No backend required.
 - **Base map** — OpenTopoMap: contour lines and forest tracks for the walk-in. Free for light use, no API key.
+- **Ticks** — one tap on the ring of a boulder marks it done. The walk then counts what is left, on the day (*100 boulders · 59 stops · 3.13 km · 12 done*) and on every stop. A filter hides what you have finished. Ticks stay in this browser: a share link carries the circuit, not somebody else's ticklist.
+- **Offline** — map tiles are kept in IndexedDB, so a walk you have opened once draws again with no signal, and **Save this walk for offline** fetches the rest before you leave the car (about 90 tiles for the whole of Kjugekull). The page, its data and your ticks are already on the disk. Photographs are the exception: the 27crags storage host allows no copy to be kept, so a strip that cannot load takes itself off the stop.
+- **Dark** — the chrome follows the system. The map keeps its daylight in both, because contour lines and forest tracks read better that way.
 - **The sheet** — one bottom sheet holds everything, and it is always on screen. Its header is the way in: a grab bar, the search box, where the walk starts (*① Starts at Caféblocket*), the day in one line (*100 boulders · 59 stops · 3.13 km*), and a tab bar for **The walk**, **Circuits** and **Filters**. A tap on the grab bar, on a tab, or in the search box folds the list out; a second tap on the grab bar folds it back. A search takes the body over for as long as there is something in the box. A phone parks the header along the bottom edge, over a full-screen map that keeps the route clear of it; a big screen docks the same sheet at the left and starts unfolded.
 
 A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](ROUTES.md).
@@ -62,6 +66,8 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `build_lists.js` | Holds the eight guidebook style lists, *Affonsos Darlings* and *Jacobs Running*, resolves each name against `api/*.json`, routes them, and writes `map_data.json` + the `var DATA=` line of `index.html` |
 | `api/*.json` | Cached 27crags crag API responses (routes + sectors + parking) |
 | `scrape.js` / `scrape_min.js` | The in-session character scraper |
+| `record_demo.js` | Rebuilds `docs/demo.gif` by driving Chrome over the DevTools Protocol (node built-ins + ffmpeg, no packages) |
+| `docs/demo.gif` | The walkthrough at the top of this file |
 
 ## Jacobs Running — how the machine chose
 

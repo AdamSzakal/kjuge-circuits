@@ -5,7 +5,31 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--acc:#e6194B;--my:#4363d8;--find:#ff8c00}
+:root{
+  /* Circuit colours are data, not theme: they name a list on the map and stay
+     the same in both. Everything else the chrome is painted with is a token. */
+  --acc:#e6194B;--my:#4363d8;--find:#ff8c00;--gold:#f5a623;--ok:#3cb44b;
+  --bg:#fff;--bg2:#f1f2f4;--bg3:#f4f5f7;
+  --ink:#16181c;--ink2:#5c636d;--ink3:#888e96;--ink4:#8a9099;
+  --line:#ccd0d5;--line2:#eceef0;
+  --link:#0645ad;--solid:#333;--solid-off:#ccc;--solid-off-ink:#666;
+  --warn-bg:#fdfaef;--warn-line:#ece0b6;--warn-ink:#8a6d1f;--warn-body:#5c4b1f;
+  --danger:#c00;--danger-bg:#fff7f7;--danger-line:#e3b6b6;
+  --shadow:0 4px 20px rgba(0,0,0,.3);--shadow-up:0 -2px 16px rgba(0,0,0,.25);
+}
+/* The map keeps its own daylight - contour lines and forest tracks are easier
+   to read that way - and only the chrome over it turns dark. */
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15181d;--bg2:#23272e;--bg3:#2b3038;
+    --ink:#e9ecf1;--ink2:#aab2bd;--ink3:#8d95a1;--ink4:#79818d;
+    --line:#3a4049;--line2:#2a2f36;
+    --link:#7fb0ff;--solid:#545c67;--solid-off:#3a4049;--solid-off-ink:#9aa2ad;
+    --warn-bg:#2b2413;--warn-line:#4d4222;--warn-ink:#e0bd6a;--warn-body:#c9b183;
+    --danger:#ff6b6b;--danger-bg:#2a1618;--danger-line:#5c2b2e;
+    --shadow:0 4px 24px rgba(0,0,0,.6);--shadow-up:0 -2px 18px rgba(0,0,0,.5);
+  }
+}
 *{box-sizing:border-box}
 /* The rules below set `display` on elements that are switched off with the
    `hidden` attribute, so `hidden` has to win over them. */
@@ -14,38 +38,47 @@ html,body,#map{height:100%;margin:0}
 /* The map fills the screen: the page itself never scrolls. Without this, the
    panels parked below the bottom edge could be scrolled into view. */
 html,body{overflow:hidden;overscroll-behavior:none}
-body{font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
 .leaflet-tooltip.num{background:transparent;border:none;box-shadow:none;color:#fff;font-weight:700;font-size:12px;
   text-shadow:0 1px 2px rgba(0,0,0,.5);pointer-events:none}
 /* The open stop: ring and number in one piece, so they never come apart. */
 .adot{display:flex;align-items:center;justify-content:center;border-radius:50%;
   border:4px solid #fff;color:#fff;font-weight:700;font-size:12px;
   text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
+/* Leaflet ships its own light colours for the popup and the zoom control, so
+   the chrome tokens have to reach them. The attribution keeps its own light
+   plate: it sits on the map, which stays light in both themes. */
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--bg);color:var(--ink);box-shadow:var(--shadow)}
+.leaflet-container a.leaflet-popup-close-button{color:var(--ink3)}
+.leaflet-container a.leaflet-popup-close-button:hover{color:var(--ink)}
+.leaflet-bar{border-color:var(--line)}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--bg);color:var(--ink);border-bottom-color:var(--line)}
+.leaflet-container{background:var(--bg2)}
 .leaflet-popup-content{font:14px/1.55 system-ui;margin:12px 14px}
 .phead{display:block;margin-bottom:2px}
 .prow{margin:1px 0}
-.leaflet-popup-content a,#sheet a{color:#0645ad;text-decoration:none}
+.leaflet-popup-content a,#sheet a{color:var(--link);text-decoration:none}
 .leaflet-popup-content a:active,#sheet a:active{text-decoration:underline}
 /* Small screens get the stop as a sheet across the bottom instead of a popup. */
-#sheet{position:fixed;left:0;right:0;bottom:0;z-index:1500;background:#fff;
-  border-radius:16px 16px 0 0;box-shadow:0 -2px 16px rgba(0,0,0,.25);
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:1500;background:var(--bg);
+  border-radius:16px 16px 0 0;box-shadow:var(--shadow-up);
   max-height:55vh;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   font:14px/1.55 system-ui}
 #sheet[hidden]{display:none}
 /* The header holds still while the list of problems scrolls under it. */
 #shead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;
-  background:#fff;border-bottom:1px solid #eee;border-radius:16px 16px 0 0;padding:12px 14px}
+  background:var(--bg);border-bottom:1px solid var(--line2);border-radius:16px 16px 0 0;padding:12px 14px}
 #shead b{flex:1;min-width:0;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   text-box:trim-both cap alphabetic;padding:4px 0}
 #sclose{flex:none;background:none;border:none;font-size:22px;line-height:1;
-  color:#888;cursor:pointer;padding:4px 10px;display:flex;align-items:center;justify-content:center}
+  color:var(--ink3);cursor:pointer;padding:4px 10px;display:flex;align-items:center;justify-content:center}
 #sbody{padding:2px 16px calc(16px + env(safe-area-inset-bottom))}
-.stars{color:#f5a623;letter-spacing:1px}
-.rval{color:#888;font-size:12px}
+.stars{color:var(--gold);letter-spacing:1px}
+.rval{color:var(--ink3);font-size:12px}
 #backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1300;display:none;opacity:0;transition:opacity .2s}
 body.open #backdrop{display:block;opacity:1}
 #panel,#editor{position:absolute;z-index:1400;top:10px;left:10px;width:270px;max-height:calc(100vh - 20px);
-  background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden}
+  background:var(--bg);border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
 #panel{width:330px;border-radius:16px}
 /* The sheet is always on screen. Collapsed it shows its header - the search,
    where the walk starts, and the tabs - and the body underneath it is folded
@@ -88,155 +121,163 @@ body.open #pclose>.ic{transform:rotate(180deg)}
 #grab::before{content:'';display:block;width:38px;height:4px;border-radius:2px;background:#d2d5da;margin:0 auto}
 #phead{display:flex;align-items:center;gap:8px;padding:8px 12px}
 .searchpill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:0 12px;min-height:36px;
-  background:#f1f2f4;border:1.5px solid transparent;border-radius:22px}
-.searchpill:focus-within{background:#fff;border-color:var(--my)}
-.searchpill>.ic{width:16px;height:16px;color:#8a9099}
+  background:var(--bg2);border:1.5px solid transparent;border-radius:22px}
+.searchpill:focus-within{background:var(--bg);border-color:var(--my)}
+.searchpill>.ic{width:16px;height:16px;color:var(--ink4)}
 .searchpill input{flex:1;min-width:0;border:none;background:none;padding:0;min-height:34px;
   font:14px/1.3 inherit;color:inherit}
 .searchpill input:focus{outline:none}
 .searchpill input::-webkit-search-cancel-button{-webkit-appearance:none}
-#pshare,#pclose{flex:none;width:36px;height:36px;border-radius:18px;border:none;background:#f1f2f4;color:#444;
+#pshare,#pclose{flex:none;width:36px;height:36px;border-radius:18px;border:none;background:var(--bg2);color:var(--ink2);
   cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 #pshare>.ic,#pclose>.ic{width:17px;height:17px}
-#pshare.ok{background:#3cb44b;color:#fff}
+#pshare.ok{background:var(--ok);color:#fff}
 /* Where the walk begins, and what the day comes to. */
 #pstart{padding:0 14px 8px;display:flex;flex-direction:column;gap:2px}
 .startrow{display:flex;align-items:center;gap:9px;min-width:0}
-.startrow .lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a9099;flex:none}
+.startrow .lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink4);flex:none}
 .startrow b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#wsum{font-size:12.5px;color:#767c85}
+#wsum{font-size:12.5px;color:var(--ink4)}
 #pstart.empty .startrow{display:none}
-#tabs{display:flex;gap:2px;margin:0 12px 10px;padding:3px;background:#eef0f2;border-radius:18px}
+#tabs{display:flex;gap:2px;margin:0 12px 10px;padding:3px;background:var(--bg2);border-radius:18px}
 #tabs button{flex:1;min-width:0;border:none;background:none;border-radius:15px;padding:0 6px;min-height:32px;
-  font:600 12.5px/1 inherit;color:#6b7076;cursor:pointer;
+  font:600 12.5px/1 inherit;color:var(--ink2);cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:6px}
-#tabs button.on{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.16)}
+#tabs button.on{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.16)}
 .tcount{flex:none;background:var(--acc);color:#fff;border-radius:8px;min-width:16px;height:16px;padding:0 4px;
   font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 .tdot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--acc)}
 .pane{display:none}
 .pane.on{display:block}
 .pane>.sec:first-child,#searchPane>.sec:first-child{border-top:none}
-.hdr b.flex{flex:1;text-transform:none;letter-spacing:0;font-weight:400;color:#777;font-size:12px}
+.hdr b.flex{flex:1;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink3);font-size:12px}
 #pbody,#ebody{overflow:auto;-webkit-overflow-scrolling:touch;padding:4px 0 10px}
 /* The padding folds away with the body. A border-box capped at zero still
    shows its own padding, which would leave a strip of the list under the tabs.
    These sit after the rule above, so they win over its shorthand. */
 #pbody{padding-top:0;padding-bottom:0}
 body.open #pbody{padding-top:4px;padding-bottom:10px}
-.sec{padding:10px 14px;border-top:1px solid #eee}
+.sec{padding:10px 14px;border-top:1px solid var(--line2)}
 .sec:first-child{border-top:none}
 .hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.hdr b{flex:1;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#444;text-box:trim-both cap alphabetic}
-.mini{font-size:12px;padding:4px 10px;border:1px solid #ccc;background:#f7f7f7;border-radius:14px;cursor:pointer;min-height:30px;
+.hdr b{flex:1;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);text-box:trim-both cap alphabetic}
+.mini{font-size:12px;padding:4px 10px;border:1px solid var(--line);background:var(--bg2);color:inherit;border-radius:14px;cursor:pointer;min-height:30px;
   display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1}
 .mini.pri{background:var(--my);border-color:var(--my);color:#fff;font-weight:600}
 .mini.wide{display:flex;width:100%;margin:8px 0 2px;min-height:40px;font-size:14px}
-.mini.danger{color:#c00;border-color:#e3b6b6;background:#fff7f7}
+.mini.danger{color:var(--danger);border-color:var(--danger-line);background:var(--danger-bg)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;border:1.5px solid #ccc;
-  background:#f2f2f2;color:#333;font-size:14px;cursor:pointer;user-select:none;min-height:38px;line-height:1}
-.chip .n{font-size:11px;color:#888}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;border:1.5px solid var(--line);
+  background:var(--bg2);color:var(--ink);font-size:14px;cursor:pointer;user-select:none;min-height:38px;line-height:1}
+.chip .n{font-size:11px;color:var(--ink3)}
 .chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .chip.on .n{color:rgba(255,255,255,.85)}
 /* A flat row, not a card: the colour of the box is the colour the circuit is
    drawn in, so the list and the map read as one thing. */
 .listrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 8px;border-radius:9px;
   font-size:14px;cursor:pointer;min-height:42px;user-select:none;
-  border-bottom:1px solid #f0f1f2}
-.listrow.on{background:#f4f5f7;border-bottom-color:transparent}
-.listrow .box{flex:none;width:21px;height:21px;border-radius:6px;border:2px solid var(--dot,#bbb);
+  border-bottom:1px solid var(--line2)}
+.listrow.on{background:var(--bg3);border-bottom-color:transparent}
+.listrow .box{flex:none;width:21px;height:21px;border-radius:6px;border:2px solid var(--dot,var(--line));
   display:flex;align-items:center;justify-content:center;line-height:1;color:#fff}
 .listrow .box .ic{width:14px;height:14px;stroke-width:2.8}
 .listrow.on .box{background:var(--dot,var(--acc));border-color:var(--dot,var(--acc))}
 .listrow .tt{flex:1;min-width:0;font-weight:600}
 .listrow.on .tt{font-weight:700}
-.listrow .km{flex:none;margin-left:auto;color:#8a9099;font-size:12.5px}
+.listrow .km{flex:none;margin-left:auto;color:var(--ink4);font-size:12.5px}
 .listrow .edit{flex:none;background:none;border:none;color:#666;font-size:15px;cursor:pointer;padding:4px 6px;min-height:32px;
   display:flex;align-items:center;justify-content:center;line-height:1}
 .listrow.editing{border-style:dashed;border-color:var(--dot,var(--my))}
-.lgroup{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#999;margin:10px 0 2px}
+.lgroup{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);margin:10px 0 2px}
 /* The search sits above the tabs and reaches every boulder, picked or not. */
 #gqres{margin-top:2px}
+/* Secondary line inside a row, wherever a row carries one. */
+.sub{color:var(--ink3)}
 #gqres:empty{display:none}
 .res .add.hit{background:var(--find);border-color:var(--find);color:#fff}
 #gqNote b.find{color:var(--find)}
-.txt{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:10px;font:14px/1.3 inherit;min-height:42px;background:#fff}
+.txt{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font:14px/1.3 inherit;min-height:42px;
+  background:var(--bg);color:inherit}
 .txt:focus{outline:none;border-color:var(--my)}
 #q{margin-top:8px}
 #qres{max-height:240px;overflow:auto;-webkit-overflow-scrolling:touch;margin-top:6px}
 #qres:empty{display:none}
 .res{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;min-height:42px;user-select:none}
-.res+.res{border-top:1px solid #f0f0f0}
-.res:hover{background:#f4f4f4}
-.res.on{background:#eef2ff}
+.res+.res{border-top:1px solid var(--line2)}
+.res:hover{background:var(--bg3)}
+.res.on{background:var(--bg3)}
 .res .nm{flex:1;min-width:0;font-size:13px}
-.res .nm small{display:block;color:#888;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.res .gr{flex:none;font-size:12px;font-weight:700;color:#555;text-box:trim-both cap alphabetic;padding:3px 0}
-.res .add{flex:none;width:28px;height:28px;border-radius:14px;border:1.5px solid #bbb;background:#fff;color:#555;
+.res .nm small{display:block;color:var(--ink3);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res .gr{flex:none;font-size:12px;font-weight:700;color:var(--ink2);text-box:trim-both cap alphabetic;padding:3px 0}
+.res .add{flex:none;width:28px;height:28px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink2);
   font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .res.on .add{background:var(--my);border-color:var(--my);color:#fff}
-.myrow{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:13px;border-top:1px solid #f0f0f0;
+.myrow{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:13px;border-top:1px solid var(--line2);
   cursor:pointer}
-.myrow:hover{background:#f5f7fa}
+.myrow:hover{background:var(--bg3)}
 .myrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* The problem number, the same one the popup shows. */
 /* The stop number, wherever it is shown: the walk, the circuit editor, and the
    line that says where the walk starts. */
-.snum{flex:none;width:20px;height:20px;border-radius:50%;background:#333;color:#fff;
+.snum{flex:none;width:20px;height:20px;border-radius:50%;background:var(--solid);color:#fff;
   font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.snum.none{background:#ccc;color:#666}
+.snum.none{background:var(--solid-off);color:var(--solid-off-ink)}
 .leaflet-popup-content .pnum,#sheet .pnum{display:inline-flex;align-items:center;justify-content:center;
-  min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#333;color:#fff;
+  min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--solid);color:#fff;
   font-size:11px;font-weight:700;margin-right:5px;vertical-align:middle}
 .myrow.off{opacity:.55}
-.myrow .flt{color:#c00;font-size:10px;font-weight:700;text-transform:uppercase}
-.myrow .del{flex:none;background:none;border:none;color:#c00;cursor:pointer;font-size:16px;padding:4px 8px;min-height:32px;
+.myrow .flt{color:var(--danger);font-size:10px;font-weight:700;text-transform:uppercase}
+.myrow .del{flex:none;background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:4px 8px;min-height:32px;
   display:flex;align-items:center;justify-content:center;line-height:1}
 .ta{min-height:110px;resize:vertical;margin-top:8px;line-height:1.4}
 #pasteBox[hidden]{display:none}
-.note{color:#888;font-size:12px;margin-top:8px}
-.note a{color:#0645ad}
+.note{color:var(--ink3);font-size:12px;margin-top:8px}
+.note a{color:var(--link)}
 /* ---- the walk: what the crag asks of you, then the stops in order ---- */
 /* The access text is the crag's own, emoji and line breaks included, so it is
    printed as it was written instead of being reflowed into one paragraph. */
-.access{border:1px solid #ece0b6;background:#fdfaef;border-radius:10px;padding:8px 12px;font-size:13px}
+.access{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:8px 12px;font-size:13px}
 .access+.access{margin-top:8px}
 /* The native triangle is dropped for the same chevron the folds above use. */
-.access>summary{cursor:pointer;font-weight:700;color:#8a6d1f;min-height:26px;
+.access>summary{cursor:pointer;font-weight:700;color:var(--warn-ink);min-height:26px;
   display:flex;align-items:center;list-style:none}
 .access>summary::-webkit-details-marker{display:none}
 .access>summary::after{content:'';flex:none;width:7px;height:7px;margin-left:auto;
   border-right:2px solid currentColor;border-bottom:2px solid currentColor;
   transform:translateY(-2px) rotate(45deg);transition:transform .18s}
 .access[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
-.access .abody{white-space:pre-line;margin-top:6px;color:#5c4b1f;line-height:1.5}
-.access.red{border-color:#e8bcbc;background:#fdf3f3}
-.access.red>summary{color:#a33}
+.access .abody{white-space:pre-line;margin-top:6px;color:var(--warn-body);line-height:1.5}
+.access.red{border-color:var(--danger-line);background:var(--danger-bg)}
+.access.red>summary{color:var(--danger)}
 #walkList .myrow{cursor:pointer}
 
 /* ---- one boulder, as a stop popup and the bottom sheet read it ---- */
 .prow{display:flex;align-items:flex-start;gap:8px;margin:1px 0}
 .pmain{flex:1;min-width:0}
-.pmeta{color:#888;font-size:12px;margin-top:1px}
-.pinfo{color:#666;font-size:12px;margin-top:2px;
+.pmeta{color:var(--ink3);font-size:12px;margin-top:1px}
+.pinfo{color:var(--ink2);font-size:12px;margin-top:2px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 /* The best line on the block, by the same score the community lists use. */
-.king{display:inline-block;background:#fdf1c9;color:#8a6d1f;border:1px solid #eddfa8;border-radius:9px;
+.king{display:inline-block;background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);border-radius:9px;
   padding:2px 7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
   vertical-align:middle;line-height:1}
-.pacts{flex:none;display:flex;gap:4px;padding-top:2px}
-.pact{width:30px;height:30px;border-radius:15px;border:1.5px solid #ccc;background:#fff;color:#555;
+.pacts{flex:none;display:flex;gap:3px;padding-top:2px}
+.pact{width:30px;height:30px;border-radius:15px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink2);
   cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .pact.on{background:var(--my);border-color:var(--my);color:#fff}
+.pact.ptick.on{background:var(--ok);border-color:var(--ok)}
+/* A boulder you have sent stays on the list, quietly. */
+.prow.done .pmain{opacity:.5}
+.prow.done .pmain a{text-decoration:line-through}
+.done-n{color:var(--ok);font-weight:600}
 .pact .ic{width:16px;height:16px}
 /* The block link is a button, so it does not take the link colour of a row. */
-a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:#333;text-decoration:none}
+a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decoration:none}
 /* Photographs of the block, scrolled sideways; a tap opens the big one. */
 .strip{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
   padding-bottom:6px;margin:2px 0 8px}
 .strip img{flex:none;width:132px;height:90px;object-fit:cover;border-radius:8px;
-  background:#eee;cursor:pointer;display:block}
+  background:var(--bg3);cursor:pointer;display:block}
 #lb{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 #lb[hidden]{display:none}
@@ -283,14 +324,14 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:#333;text-decoration:no
   #shead b{font-size:18px}
   #sbody{padding:2px 18px calc(18px + env(safe-area-inset-bottom))}
   #sheet .prow{padding:10px 0;margin:0}
-  #sheet .prow+.prow{border-top:1px solid #eee}
+  #sheet .prow+.prow{border-top:1px solid var(--line2)}
   #sheet .pnum{min-width:26px;height:26px;border-radius:13px;font-size:14px;margin-right:8px}
   #sheet .rval,#sheet .prow span[style]{font-size:14px}
   #sclose{font-size:26px;padding:6px 12px}
   /* Thumbs and buttons grow to thumb size along with the rest of the sheet. */
   .strip img{width:150px;height:104px}
-  .pact{width:36px;height:36px;border-radius:18px}
-  .pact .ic{width:18px;height:18px}
+  .pact{width:33px;height:33px;border-radius:17px}
+  .pact .ic{width:17px;height:17px}
   .pmeta,.pinfo{font-size:13px}
 }
 @media (min-width:601px){#backdrop{display:none!important}}
@@ -324,6 +365,9 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:#333;text-decoration:no
     </div>
     <div id="wbody" class="pane">
       <div class="sec" id="accessSec" hidden></div>
+      <div class="sec"><div class="hdr"><b>Offline</b><button class="mini" id="offClear" hidden>Clear</button></div>
+        <button class="mini wide" id="offSave">Save this walk for offline</button>
+        <div class="note" id="offNote"></div></div>
       <div class="sec"><div id="walkList"></div></div>
     </div>
     <div id="cbody" class="pane">
@@ -335,6 +379,9 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:#333;text-decoration:no
       <div class="sec"><div class="hdr"><b>Character</b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div><div class="chips" id="chars"></div>
         <div class="note">Shows boulders with <b>any</b> selected characteristic (untagged always shown).</div></div>
       <div class="sec"><div class="hdr"><b>Min rating</b></div><div class="chips" id="ratings"></div></div>
+      <div class="sec"><div class="hdr"><b>Done</b><button class="mini" id="tClear" hidden>Clear all</button></div>
+        <div class="chips" id="doneChips"></div>
+        <div class="note" id="tNote"></div></div>
     </div>
     <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.</div></div>
   </div>
@@ -381,14 +428,73 @@ map.getPane('stopPane').style.zIndex=620;
 map.createPane('activePane');
 map.getPane('activePane').style.zIndex=680;
 map.getPane('activePane').style.pointerEvents='none';
+/* ---- the crag has no signal ----
+ * The page, its data and your ticks are already on the disk, so map tiles are
+ * the only piece that has to come off the network. They are kept in IndexedDB
+ * under "z/x/y": a tile that has been drawn once draws again with no signal,
+ * and "Save this walk" fetches the rest before you leave the car.
+ *
+ * Photographs cannot join them. The 27crags storage host sends no CORS header,
+ * so the page may show its pictures but may not read them back, and a strip
+ * that cannot load takes itself off the stop.
+ */
+var TILE_DB=null;
+function tileDB(){
+  if(!TILE_DB)TILE_DB=new Promise(function(res,rej){
+    var r=indexedDB.open('kjuge-tiles',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('tiles');};
+    r.onsuccess=function(){res(r.result);};
+    r.onerror=function(){rej(r.error);};
+  }).catch(function(){return null;});   // a browser that refuses simply stays online
+  return TILE_DB;
+}
+function tileOp(mode,fn){
+  return tileDB().then(function(db){
+    if(!db)return null;
+    return new Promise(function(res){
+      var tx=db.transaction('tiles',mode), q=fn(tx.objectStore('tiles'));
+      if(q){q.onsuccess=function(){res(q.result);};q.onerror=function(){res(null);};}
+      else{tx.oncomplete=function(){res(null);};tx.onerror=function(){res(null);};}
+    });
+  }).catch(function(){return null;});
+}
+function tileGet(k){return tileOp('readonly',function(st){return st.get(k);});}
+function tilePut(k,b){return tileOp('readwrite',function(st){st.put(b,k);});}
+function tileCount(){return tileOp('readonly',function(st){return st.count();}).then(function(n){return n||0;});}
+function tileClear(){return tileOp('readwrite',function(st){st.clear();});}
+
+// A tile is drawn from the store when it is there, and from the network when
+// it is not - and the network copy is kept. The image element and the fetch
+// ask for the same address, which the browser's own cache answers twice over.
+var CachedTiles=L.TileLayer.extend({
+  createTile:function(coords,done){
+    var img=document.createElement('img');
+    img.alt='';
+    L.DomEvent.on(img,'load',L.Util.bind(this._tileOnLoad,this,done,img));
+    L.DomEvent.on(img,'error',L.Util.bind(this._tileOnError,this,done,img));
+    L.DomEvent.on(img,'load',function(){
+      if(img.src.lastIndexOf('blob:',0)===0)URL.revokeObjectURL(img.src);
+    });
+    var key=coords.z+'/'+coords.x+'/'+coords.y, url=this.getTileUrl(coords);
+    tileGet(key).then(function(blob){
+      if(blob&&blob.size){img.src=URL.createObjectURL(blob);return;}
+      img.src=url;
+      fetch(url).then(function(r){return r.ok?r.blob():null;})
+        .then(function(b){if(b&&b.size)tilePut(key,b);}).catch(function(){});
+    });
+    return img;
+  }
+});
+
 // OpenTopoMap: free for light use, no API key. Contour lines and forest
 // tracks help when walking in to a boulder. Its tiles stop at zoom 17, so
 // they are stretched up to 19.
-L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{
+var tiles=new CachedTiles('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{
   maxZoom:19,maxNativeZoom:17,subdomains:'abc',
   attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, '+
     '<a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA)'
-}).addTo(map);
+});
+tiles.addTo(map);
 
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 // The same square-box icons the static buttons use, for the rows built here.
@@ -397,11 +503,12 @@ var ICON_PATH={
   plus:'M10 4.5v11M4.5 10h11',
   close:'M5.5 5.5l9 9M14.5 5.5l-9 9',
   pencil:'M12.7 3.7l3.6 3.6-8.5 8.5H4.2v-3.6z',
-  eyeoff:'M2.5 10S5.5 5 10 5s7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10zM10 12.2a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM4 4l12 12'
+  eyeoff:'M2.5 10S5.5 5 10 5s7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10zM10 12.2a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM4 4l12 12',
+  tick:'M10 2.8a7.2 7.2 0 100 14.4 7.2 7.2 0 000-14.4zM6.4 10.2l2.5 2.5 4.7-5.1'
 };
 function icon(n){return '<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="'+ICON_PATH[n]+'"/></svg>';}
-function stars(r){if(r==null)return '';var full=Math.round(r),s='';for(var i=0;i<3;i++)s+=(i<full?'★':'☆');
-  return ' <span class="stars">'+s+'</span> <span class="rval">'+r.toFixed(1)+'</span>';}
+function stars(r,noNum){if(r==null)return '';var full=Math.round(r),s='';for(var i=0;i<3;i++)s+=(i<full?'★':'☆');
+  return ' <span class="stars">'+s+'</span>'+(noNum?'':' <span class="rval">'+r.toFixed(1)+'</span>');}
 // One boulder, the way a popup and the bottom sheet both read it.
 // A phone opens the link in the same tab: a new tab keeps iOS in Safari
 // instead of handing the address over to the 27crags app.
@@ -411,6 +518,7 @@ function probRow(b,num,acts){
   var tgt=isMobile()?'':' target="_blank" rel="noopener"';
   var e=b.id?BY_ID[b.id]:null;
   var meta=[];
+  if(b.rating!=null)meta.push(b.rating.toFixed(1)+' of 3');
   if(b.chars.length)meta.push(b.chars.map(cap).join(' · '));
   if(e){
     var asc=e[6]||0, vid=e[8]||0;
@@ -419,15 +527,16 @@ function probRow(b,num,acts){
   }
   var king=(e&&BEST_AT[e[4]]===e[0])?' <span class="king">Best on block</span>':'';
   var info=(e&&e[7])?'<div class="pinfo">'+esc(e[7])+'</div>':'';
-  var btns='';
+  var btns='', done=b.id&&TICKS[b.id];
   if(acts&&b.id){
     var on=inTarget(b.id);
     btns='<div class="pacts">'+
+      '<button class="pact ptick'+(done?' on':'')+'" data-id="'+b.id+'" title="'+(done?'Done':'Mark as done')+'">'+icon('tick')+'</button>'+
       '<button class="pact padd'+(on?' on':'')+'" data-id="'+b.id+'" title="'+(on?'In ':'Add to ')+esc(targetName())+'">'+icon(on?'check':'plus')+'</button>'+
       '<button class="pact phide" data-id="'+b.id+'" title="Hide this boulder">'+icon('eyeoff')+'</button></div>';
   }
-  return '<div class="prow"><div class="pmain">'+(num?'<span class="pnum">'+num+'</span>':'')+
-    '<a href="'+b.url+'"'+tgt+'>'+esc(b.name)+'</a> ('+esc(b.grade)+')'+stars(b.rating)+king+
+  return '<div class="prow'+(done?' done':'')+'"><div class="pmain">'+(num?'<span class="pnum">'+num+'</span>':'')+
+    '<a href="'+b.url+'"'+tgt+'>'+esc(b.name)+'</a> ('+esc(b.grade)+')'+stars(b.rating,true)+king+
     (meta.length?'<div class="pmeta">'+esc(meta.join(' · '))+'</div>':'')+info+
     '</div>'+btns+'</div>';
 }
@@ -490,6 +599,26 @@ function photoUrl(ref,big){
   var p=ref.split('/'), pad=('000000000'+p[0]).slice(-9);
   return 'https://storage.e5gc6.upcloudobjects.com/photos/'+pad.slice(0,3)+'/'+pad.slice(3,6)+'/'+p[0]+
     '/'+(big?'size_l-'+p[2]:'size_m-'+p[1])+'.jpg';
+}
+
+/* ---- what you have sent ----
+ * A tick is yours and nobody else's, so it stays in this browser and never
+ * travels in a share link: a link carries the circuit, not somebody else's
+ * ticklist. `hideDone` is a filter, so it clears with the other filters while
+ * the ticks themselves stay. */
+var TICK_KEY='kjuge.ticks', TICKS={}, hideDone=false;
+(function(){
+  var raw;try{raw=localStorage.getItem(TICK_KEY);}catch(e){return;}
+  if(!raw)return;
+  try{JSON.parse(raw).forEach(function(id){TICKS[id]=1;});}catch(e){}
+})();
+function saveTicks(){
+  try{localStorage.setItem(TICK_KEY,JSON.stringify(Object.keys(TICKS).map(Number)));}catch(e){}
+}
+function tickCount(){return Object.keys(TICKS).length;}
+function toggleTick(id){
+  if(TICKS[id])delete TICKS[id];else TICKS[id]=1;
+  saveTicks();
 }
 
 /* ---- how good is this boulder? ----
@@ -674,6 +803,26 @@ RSTEPS.forEach(function(rs){var c=document.createElement('div');c.className='chi
   c.onclick=function(){var v=+this.dataset.r;minRating=(minRating===v?0:v);syncR();render(false);};ratingsEl.appendChild(c);});
 function syncR(){[].forEach.call(ratingsEl.children,function(c){c.classList.toggle('on',+c.dataset.r===minRating);});}
 
+/* ---- what you have sent ---- */
+var doneChips=document.getElementById('doneChips'), tNote=document.getElementById('tNote'),
+    tClear=document.getElementById('tClear');
+var doneChip=document.createElement('div');
+doneChip.className='chip';doneChip.textContent='Hide what I have done';
+doneChip.onclick=function(){hideDone=!hideDone;syncT();render(false);};
+doneChips.appendChild(doneChip);
+tClear.onclick=function(){
+  if(!confirm('Forget all '+tickCount()+' ticks?'))return;
+  TICKS={};saveTicks();syncT();render(false);
+};
+// The count is the same number the walk and the header show.
+function syncT(){
+  var n=tickCount();
+  doneChip.classList.toggle('on',hideDone);
+  tClear.hidden=!n;
+  tNote.textContent=n?n+' boulder'+(n===1?'':'s')+' ticked. Ticks stay in this browser and are not carried by a share link.':
+    'Tap the ring on a boulder to mark it done.';
+}
+
 /* ---- two folds: picking circuits, and filtering what they show ---- */
 var fbody=document.getElementById('fbody'), fsum=document.getElementById('fsum'),
     fReset=document.getElementById('fReset'), fbadge=document.getElementById('fbadge');
@@ -711,8 +860,8 @@ function updateCSum(){
 function resetFilters(){
   GORD.forEach(function(g){gradeOn[g]=true;});
   charList.forEach(function(c){charOn[c]=true;});
-  minRating=0;hideIds={};
-  syncG();syncC();syncR();render(false);
+  minRating=0;hideIds={};hideDone=false;
+  syncG();syncC();syncR();syncT();render(false);
 }
 // Header text says at a glance whether anything is being filtered away.
 function updateFSum(){
@@ -723,6 +872,7 @@ function updateFSum(){
   if(gOff)bits.push(gOff+' of '+GORD.length+' grades off');
   if(cOff)bits.push(cOff+' of '+charList.length+' characters off');
   if(minRating)bits.push('min '+minRating+'★');
+  if(hideDone)bits.push('done hidden');
   if(nHid)bits.push(nHid+' hidden');
   var narrowed=bits.length>0;
   // The tab carries a dot while anything is narrowed; the pane says what.
@@ -1063,7 +1213,7 @@ function renderPicked(){
     return '<div class="myrow'+(vis?'':' off')+'" data-id="'+b.id+'">'+
       '<span class="snum'+(r.n?'':' none')+'">'+(r.n||'\u2013')+'</span>'+
       '<span class="nm">'+esc(b.name)+' <b>'+esc(b.grade)+'</b>'+(vis?'':' <span class="flt">filtered out</span>')+
-      '<br><small style="color:#888">'+esc(b.label)+'</small></span>'+
+      '<br><small class="sub">'+esc(b.label)+'</small></span>'+
       '<button class="del" title="Remove">'+icon('close')+'</button></div>';
   }).join('');
 }
@@ -1195,6 +1345,14 @@ function openPhoto(si,ti){
     '<b>'+esc(SECT[si][1])+'</b>';
   lb.hidden=false;
 }
+// With no signal the photographs cannot come, and the host allows no copy to
+// be kept, so a broken frame takes itself off the stop.
+document.addEventListener('error',function(ev){
+  var t=ev.target;
+  if(!t||t.tagName!=='IMG'||!t.parentNode||!t.parentNode.classList.contains('strip'))return;
+  t.hidden=true;
+  if(!t.parentNode.querySelector('img:not([hidden])'))t.parentNode.hidden=true;
+},true);
 document.getElementById('lbClose').onclick=closePhoto;
 lb.onclick=function(ev){if(ev.target===lb)closePhoto();};
 document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!lb.hidden)closePhoto();});
@@ -1204,10 +1362,11 @@ document.addEventListener('click',function(ev){
   if(!ev.target.closest)return;
   var im=ev.target.closest('.strip img');
   if(im){openPhoto(+im.dataset.s,+im.dataset.t);return;}
-  var btn=ev.target.closest('.padd,.phide');
+  var btn=ev.target.closest('.padd,.phide,.ptick');
   if(!btn)return;
   var id=+btn.dataset.id;
   if(btn.classList.contains('phide')){hideIds[id]=1;render(false);}
+  else if(btn.classList.contains('ptick')){toggleTick(id);syncT();render(false);}
   else toggleInTarget(id);
 });
 document.getElementById('sclose').onclick=closeSheet;
@@ -1239,8 +1398,9 @@ function renderWalk(){
   pstart.classList.remove('empty');
   walkList.innerHTML=WALK.map(function(w){
     return '<div class="myrow" data-k="'+esc(w.key)+'"><span class="snum">'+w.n+'</span>'+
-      '<span class="nm">'+esc(w.sector)+'<br><small style="color:#888">'+
-      w.nb+' boulder'+(w.nb>1?'s':'')+(w.gr?' · '+esc(w.gr):'')+'</small></span></div>';
+      '<span class="nm">'+esc(w.sector)+'<br><small class="sub">'+
+      w.nb+' boulder'+(w.nb>1?'s':'')+(w.gr?' · '+esc(w.gr):'')+
+      (w.done?' · <span class="done-n">'+w.done+' done</span>':'')+'</small></span></div>';
   }).join('');
   // What each crag on the walk asks of you, in its own words.
   var seen={},h='';
@@ -1256,6 +1416,74 @@ function renderWalk(){
   });
   accessSec.innerHTML=h;accessSec.hidden=!h;
 }
+/* ---- saving the walk for the woods ----
+ * The tiles that cover the route, from the zoom that shows the whole crag down
+ * to the sharpest one OpenTopoMap draws. A cap keeps a careless tap on a list
+ * that spans a whole lake from pulling thousands of tiles off a free server. */
+var OFF_ZOOMS=[13,14,15,16,17], OFF_CAP=1500, LAST_BOUNDS=null;
+var offSave=document.getElementById('offSave'), offNote=document.getElementById('offNote'),
+    offClear=document.getElementById('offClear');
+/* Leaflet's own getTileUrl() takes its zoom from the map, not from the tile it
+ * is handed, so it cannot address a zoom the map is not showing. Saving a walk
+ * covers five zooms at once, so the address is built from the layer's own
+ * template instead. */
+function tileUrl(c){
+  var sd=tiles.options.subdomains;
+  return L.Util.template(tiles._url,{s:sd[(c.x+c.y)%sd.length],x:c.x,y:c.y,z:c.z,r:''});
+}
+function tilesFor(bounds){
+  var out=[];
+  OFF_ZOOMS.forEach(function(z){
+    var n=Math.pow(2,z);
+    function lon2x(lo){return Math.floor((lo+180)/360*n);}
+    function lat2y(la){var r=la*Math.PI/180;
+      return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n);}
+    var x0=lon2x(bounds.getWest()), x1=lon2x(bounds.getEast());
+    var y0=lat2y(bounds.getNorth()), y1=lat2y(bounds.getSouth());
+    for(var x=x0;x<=x1;x++)for(var y=y0;y<=y1;y++)out.push({x:x,y:y,z:z});
+  });
+  return out;
+}
+function offReport(){
+  tileCount().then(function(n){
+    offClear.hidden=!n;
+    offNote.textContent=n?n+' map tiles saved. The walk draws with no signal; the photographs still need one.':
+      'Save the map of this walk while you have signal. The list, the grades and your ticks already work offline.';
+  });
+}
+offClear.onclick=function(){tileClear().then(offReport);};
+offSave.onclick=function(){
+  if(!LAST_BOUNDS){offNote.textContent='Pick a circuit first.';return;}
+  var list=tilesFor(LAST_BOUNDS.pad(0.15));
+  if(list.length>OFF_CAP){
+    offNote.textContent='That is '+list.length+' tiles, too many to ask of a free map server. Pick fewer circuits, or one crag at a time.';
+    return;
+  }
+  offSave.disabled=true;
+  var done=0, kept=0, i=0;
+  function step(){
+    if(i>=list.length)return Promise.resolve();
+    var c=list[i++], key=c.z+'/'+c.x+'/'+c.y;
+    return tileGet(key).then(function(b){
+      if(b&&b.size)return null;
+      return fetch(tileUrl(c)).then(function(r){return r.ok?r.blob():null;})
+        .then(function(bl){if(bl&&bl.size){kept++;return tilePut(key,bl);}});
+    }).catch(function(){}).then(function(){
+      done++;
+      offNote.textContent='Saving '+done+' of '+list.length+'…';
+      return step();
+    });
+  }
+  // Four at a time: enough to be quick, gentle enough on a free server.
+  var runners=[];for(var k=0;k<4;k++)runners.push(step());
+  Promise.all(runners).then(function(){
+    offSave.disabled=false;
+    offNote.textContent=kept?'Saved. '+kept+' new tiles are on this device.':'Already saved.';
+    setTimeout(offReport,1800);
+  });
+};
+offReport();
+
 walkList.onclick=function(ev){
   var row=ev.target.closest('.myrow');
   if(!row)return;
@@ -1268,6 +1496,7 @@ walkList.onclick=function(ev){
 
 function boulderVisible(b){
   if(b.id&&hideIds[b.id]) return false;
+  if(hideDone&&b.id&&TICKS[b.id]) return false;
   if(!gradeOn[b.grade]) return false;
   if(Math.round(b.rating==null?0:b.rating) < minRating) return false;
   if(b.chars.length>0 && !b.chars.some(function(c){return charOn[c];})) return false;
@@ -1335,7 +1564,8 @@ function render(fit,focusId){
       var lo=Math.min.apply(null,gi), hi=Math.max.apply(null,gi);
       gr=GORD[lo]+(lo!==hi?'–'+GORD[hi]:'');
     }
-    WALK.push({n:pos+1,key:key,sector:sector,nb:probs.length,gr:gr,si:si});
+    var nd=probs.filter(function(b){return b.id&&TICKS[b.id];}).length;
+    WALK.push({n:pos+1,key:key,sector:sector,nb:probs.length,gr:gr,si:si,done:nd});
     // Visible dot: only decoration, so it never steals a tap from the hit area.
     var dot=L.circleMarker(pt,{pane:'stopPane',radius:DOT_R,color:'#000',weight:1,fillColor:col,fillOpacity:.9,interactive:false}).addTo(layer);
     // Invisible, larger circle that catches clicks and taps around the dot.
@@ -1360,10 +1590,14 @@ function render(fit,focusId){
   });
   if(line.length>1)L.polyline(line,{pane:'routePane',color:col,weight:4,opacity:.6,interactive:false}).addTo(layer);
   var lbl=(!sel.length&&onC.length===1?circuitName(onC[0])+' · ':'');
-  wsum.textContent=lbl+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km';
+  var nDone=0;
+  stops.forEach(function(st){st.b.forEach(function(b){if(b.id&&TICKS[b.id])nDone++;});});
+  wsum.innerHTML=esc(lbl)+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km'+
+    (nDone?' · <span class="done-n">'+nDone+' done</span>':'');
   renderWalk();
   // The parking is only the start point of the walk; nothing is drawn there.
   var all=line;
+  LAST_BOUNDS=line.length?L.latLngBounds(line):null;
   // Refit when asked, and when a newly added boulder would sit off-screen.
   var focus=focusId&&BY_ID[focusId]?toB(BY_ID[focusId]):null;
   if(fit||(focus&&!map.getBounds().contains([focus.lat,focus.lng]))){
@@ -1380,7 +1614,7 @@ function render(fit,focusId){
 // A big screen has room for the list, so it starts unfolded. A phone starts
 // on the map, with the header of the sheet along the bottom edge.
 if(!isMobile()) openPanel();
-parseHash();syncG();syncC();syncR();
+parseHash();syncG();syncC();syncR();syncT();
 // No lists in the link: carry on from the picks of the last visit, otherwise
 // from the first list.
 if(!/[#&]l=/.test(location.hash))restorePicks();
