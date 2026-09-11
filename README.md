@@ -1,27 +1,64 @@
-# Kjuge Circles
+<div align="center">
 
-Interactive walking-route planner for the **Kjugekull** and **Around Ivösjön** bouldering top-lists (Carl Nilsask, 2021) and for the eight **Problem styles** lists of the Kjugekull guidebook.
+<img src="icons/icon-192.png" width="76" alt="">
 
-It also carries **Affonsos Darlings**, a 33-problem warm-up circle of Kjugekull classics (3+ to 5+) proposed by Affonso, and **Jacobs Running**, 24 boulders chosen by the machine from the crag data alone (see below). These two community circles are the ones to climb, so they sit at the top of the list, and *Affonsos Darlings* is what a first visit opens on.
+# Kjuge Circuits
 
-The four top-lists are the work of **Carl Nilsask** (2021) — see the [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing). The eight style lists (*The highballs*, *The slabs*, *The mantles*, *The Bucket list*, *The traverses*, *The overhangs*, *The dynos*, *The weird ones*) come from the "Problem styles" page of the printed Kjugekull guidebook.
+**A walking-route planner for the boulders of Kjugekull and Ivösjön.**
 
-Given the four PDF top-lists, this project takes every boulder graded **L to 7A**, looks up each boulder's location on [27crags](https://27crags.com) (now thetopo.com), and plots the shortest walk through them all. It also supports live filtering by **grade**, **characteristics** (crimpers, slopers, slab, …) and **star rating**.
+Pick a circuit, get the shortest walk through it, and take the whole thing to the crag with no signal.
 
+[![Open the app](https://img.shields.io/badge/open-kjuge.netlify.app-0ea5e9?style=flat-square)](https://kjuge.netlify.app)
+[![Boulders](https://img.shields.io/badge/boulders-3141-f59e0b?style=flat-square)](#the-data)
+[![Crags](https://img.shields.io/badge/crags-14-f59e0b?style=flat-square)](#the-data)
+[![Build step](https://img.shields.io/badge/build_step-none-22c55e?style=flat-square)](#why-one-file)
+[![npm packages](https://img.shields.io/badge/npm_packages-0-22c55e?style=flat-square)](#why-one-file)
+[![PWA](https://img.shields.io/badge/PWA-installable-8b5cf6?style=flat-square)](#take-it-to-the-crag)
 
-![The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter](docs/demo.gif)
+<img src="docs/demo.gif" width="820" alt="The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter">
 
-*Rebuilt from the live app by [`record_demo.js`](record_demo.js) — run it whenever the interface changes.*
+<sub>Rebuilt from the live app by <a href="record_demo.js"><code>record_demo.js</code></a> — run it whenever the interface changes.</sub>
 
+</div>
 
+---
+
+## What this is
+
+Four bouldering top-lists for **Kjugekull** and **Around Ivösjön** were published as a PDF by **Carl Nilsask** in 2021. They are a good list and a bad map: hundreds of boulders, no order, no walk.
+
+This project takes every boulder on those lists, looks each one up on [27crags](https://27crags.com) (now thetopo.com) for its GPS position, and plots the shortest walk through them all. Then it does the same for the eight **Problem styles** lists of the printed Kjugekull guidebook, and for two circles the community made — so there are **14 circuits** in the app, and you can build your own out of any of the 3 141 boulders in the dataset.
+
+It is one HTML file. No backend, no login, no build step, no packages.
 
 ## Open it
 
-Live at **[kjuge.netlify.app](https://kjuge.netlify.app)** — or open [`index.html`](index.html) straight from disk. It's a single self-contained file (Leaflet + OpenTopoMap tiles from CDN, all data embedded). No build step, no bundler, no packages.
+| | |
+|---|---|
+| **On the web** | **[kjuge.netlify.app](https://kjuge.netlify.app)** — nothing to install. |
+| **On your phone** | Open the link, then *Add to home screen*. It installs, and it opens cold with no signal. |
+| **From disk** | `git clone` and open [`index.html`](index.html) in a browser. Everything but the map tiles and the photographs is already inside the file. |
 
-Map tiles are cached in the browser as you go, so it keeps working at the crag with no signal. The hosted copy adds a service worker, which also keeps the page itself, Leaflet and the boulder photographs, and lets you install it to the home screen.
+## What you get
 
-### Features
+|  |  |
+|---|---|
+| 🔎 **Search every boulder** | 3 141 problems over 14 crags, by name, grade, crag or sector. Hits light up orange on the map, also outside your circuit. |
+| 🧩 **Build your own circuit** | Add boulders from a search, from a stop, or paste a whole list of names at once. Name it and share it — the link carries it, so there is no login and no backend. |
+| 🧭 **The shortest walk** | Nearest-neighbour + 2-opt over the distinct blocks, anchored at the nearest parking, recomputed in the browser whenever you change the pick. |
+| 🗺️ **Merge circuits** | Tick several lists and they become one walk, shared blocks counted once. Tick none and the map shows all 542 blocks of the dataset to browse. |
+| 🎚️ **Filter** | Grade, 13 characteristics and star rating, applied to the built-in lists and to your own circuits alike. |
+| 🪨 **Read the block** | Every stop is a page: the topo photographs, then each boulder with its grade, ⭐ rating, characteristics, ascents, videos and description. The best line of the block is marked. |
+| ✅ **Tick what you send** | One tap on the ring. The header then counts what is left, and what you have done today. Ticks stay in your browser. |
+| 📍 **Where you are** | The crosshair follows your position and every stop says how far away it is. Satellites need no signal, so this is at its best in the woods. |
+| 📴 **Works with no signal** | *Save this walk for offline* puts the map tiles and every stop photograph in the browser before you leave the house. |
+| 🌗 **One sheet, dark or light** | The chrome follows the system; the map keeps its daylight, because contour lines read better that way. Everything lives in one bottom sheet that is always on screen. |
+
+<details>
+<summary><b>Every feature, with the reasoning behind it</b></summary>
+
+<br>
+
 - **Search** — free-text search over **every** boulder in the dataset (3141 boulders across 14 crags), matching name, grade, crag and sector.
 - **Map search** — the search box at the top of the panel draws its hits on the map in **orange**, also when they sit outside the picked circuits and outside the filters. A hit that is off-screen pulls the map to it. Each hit can be added to the current circuit, from the result row or from its map popup.
 - **My circle** — add any boulder from the search results to your own circle, name it, and get a walking route through it just like the built-in lists. The **Share** link carries every circle (ids + names), so no backend or login is needed.
@@ -44,25 +81,97 @@ Map tiles are cached in the browser as you go, so it keeps working at the crag w
 - **The sheet** — one bottom sheet holds everything, and it is always on screen. Its header is the way in: a grab bar, the search box, where the walk starts (*① Starts at Caféblocket*), the day in one line (*100 boulders · 59 stops · 3.13 km*), and a tab bar for **The walk**, **Circuits** and **Filters**. A tap on the grab bar, on a tab, or in the search box folds the list out; a second tap on the grab bar folds it back. A search takes the body over for as long as there is something in the box. A phone parks the header along the bottom edge, over a full-screen map that keeps the route clear of it; a big screen docks the same sheet at the left and starts unfolded.
 - **How many have opened it** — the credits line at the foot of the sheet ends with a count: *Opened by 1 284 climbers.* There is no backend here, so a free counter service ([abacus](https://abacus.jasoncameron.dev)) holds the number and the browser itself says whether it is new: the first visit adds one and writes a mark in `localStorage`, every visit after that only reads. So it counts browsers, not people — the same person on a phone and on a laptop counts twice, and a cleared store counts again. It is the closest a page with no login can come to a count of people. The mark is written only after the service has answered, so a first visit with no signal is counted on the next one instead of being lost. Nothing is sent but the request itself, and a failure — no signal, the service gone, a `file://` page — leaves the line away and changes nothing else.
 
-A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](ROUTES.md).
+</details>
 
-## How it was built
+## The circuits
+
+Fourteen are built in. Tick one, or tick several and they merge into a single walk.
+
+### Community — the ones to climb
+
+| Circuit | Boulders | Stops | Grades | Walk |
+|---|--:|--:|---|--:|
+| **Affonsos Darlings** | 33 | 16 | 3+ – 5+ | 1.02 km |
+| **Jacobs Running** | 24 | 22 | 3+ – 7C+ | 2.02 km |
+
+*Affonsos Darlings* is a warm-up circle of Kjugekull classics proposed by **Affonso** — it is what a first visit opens on. *Jacobs Running* is 24 boulders [chosen by the machine](#jacobs-running--how-the-machine-chose) out of the crag data alone, with no guidebook.
+
+### The top-lists — Carl Nilsask, 2021
+
+| Circuit | Boulders | Stops | Grades | Walk |
+|---|--:|--:|---|--:|
+| Kjugekull · Top 100 | 100 | 59 | L – 8A+ | 3.13 km |
+| Kjugekull · Hidden gems | 100 | 63 | L – 8A | 3.62 km |
+| Around Ivösjön · Top 100 | 82 | 48 | L – 8B | 13 crags <sup>†</sup> |
+| Around Ivösjön · Hidden gems | 77 | 57 | L – 8B+ | 12 crags <sup>†</sup> |
+
+<sup>†</sup> These two span the crags around the lake, some of them across water. Their "route" is a visiting *order*, not a footpath, so the app counts them in crags and not in kilometres.
+
+### Guidebook styles — the *Problem styles* page
+
+| Circuit | Boulders | Stops | Grades | Walk |
+|---|--:|--:|---|--:|
+| The highballs | 16 | 9 | 6A – 7C+ | 1.64 km |
+| The slabs | 16 | 16 | 4+ – 7B | 1.72 km |
+| The mantles | 16 | 13 | 5 – 7A+ | 1.84 km |
+| The Bucket list | 16 | 14 | 6A – 8A | 1.72 km |
+| The traverses | 10 | 9 | 4+ – 7C | 1.52 km |
+| The overhangs | 10 | 9 | 7A – 8B | 1.69 km |
+| The dynos | 10 | 9 | 6A – 7C | 1.99 km |
+| The weird ones | 10 | 10 | 5 – 7B | 2.10 km |
+
+A static, human-readable itinerary of the four top-list routes is in [`ROUTES.md`](ROUTES.md).
+
+## Take it to the crag
+
+Kjugekull has trees and no bars on the phone. Three things follow from that.
+
+- **The page keeps itself.** Served over https, a service worker holds the page, Leaflet and the boulder photographs, so the app opens cold with no signal and installs to the home screen.
+- **The map keeps itself.** Map tiles go into IndexedDB as you pan, and *Save this walk for offline* fetches the rest of them — about 90 tiles for the whole of Kjugekull — before you leave.
+- **Your ticks never leave.** They live in `localStorage`. A share link carries the circuit, not somebody else's ticklist.
+
+## How it works
+
+### The pipeline
 
 1. **Extract links** from `Kjuge top-lists v1.pdf` (annotation URIs) and align each with its grade by text position.
-2. **Filter** to grades L–7A.
-3. **Locate** every boulder: `27crags` web API (`/api/web01/crags/<id>`) gives per-route `sector_id`; each sector has GPS. Sector = the natural walking granularity. Parking markers come from the same API.
+2. **Keep every graded boulder** on the lists — from L up to the hardest one in the data, which is 8B+. There is no upper cut.
+3. **Locate** every boulder: the `27crags` web API (`/api/web01/crags/<id>`) gives a `sector_id` per route, and each sector has GPS. A sector is the natural walking granularity. Parking markers come from the same API.
 4. **Route** each list with a TSP (nearest-neighbour + 2-opt), anchored at parking.
 5. **Characteristics** are only rendered on 27crags route pages for signed-in users, so they were scraped from an authenticated browser session (`.tag` classes on each boulder page). Star ratings come straight from the crag API.
 6. **Render** everything into the self-contained `index.html`.
 
-## Data files
+### Why one file
+
+Every number the app needs is known before anybody opens it, so there is nothing for a server to do. The data is baked into `index.html` as one `var DATA=` line, and the whole page comes to about 480 kB — the size of one full-size topo photograph.
+
+What follows is worth the trade: no backend to keep alive, no login, no API key, no bundler and no packages. `git clone` and a double-click is a working copy of the app. The only things that come off the network are the Leaflet library, the map tiles and the photographs, and the service worker keeps all three.
+
+Nothing is built to open the app. The two scripts that *write* the data — `build_all.js` and `build_lists.js` — are run by hand when the crag data changes, and they use node built-ins only.
+
+### The data
+
+| | |
+|--:|---|
+| **3 141** | boulders |
+| **542** | blocks, each one a stop |
+| **14** | crags, cached from the 27crags API |
+| **13** | characteristics scraped per boulder |
+| **3 – 8C** | the grade span of the dataset |
+| **14** | built-in circuits |
+
+<details>
+<summary><b>Every file in the repo, and what it holds</b></summary>
+
+<br>
 
 | File | What |
 |---|---|
+| `index.html` | The whole app — markup, style, script and data in one file |
 | `Kjuge top-lists v1.pdf` | Source lists |
 | `map_data.json` | The data embedded in `index.html` (stops, boulders, grades, chars, ratings, per-list routes) |
 | `links_grades.json` | Each PDF link paired with its list + grade |
-| `located.json` | L–7A boulders with sector GPS |
+| `located.json` | The 359 top-list boulders (L–8B+) with sector GPS |
 | `routes.json` | Precomputed per-list TSP order + distance |
 | `tags_by_path.json` | Scraped characteristics per boulder |
 | `boulder_urls.json` | All 215 boulder URLs |
@@ -75,6 +184,9 @@ A static, human-readable itinerary of the per-list routes is in [`ROUTES.md`](RO
 | `manifest.webmanifest`, `icons/` | Install to the home screen |
 | `record_demo.js` | Rebuilds `docs/demo.gif` by driving Chrome over the DevTools Protocol (node built-ins + ffmpeg, no packages) |
 | `docs/demo.gif` | The walkthrough at the top of this file |
+| `ROUTES.md` | A static itinerary of the four top-list routes |
+
+</details>
 
 ## Jacobs Running — how the machine chose
 
@@ -87,11 +199,22 @@ No guidebook, only the crag data:
 
 Result: 24 boulders, 3+ to 7C+, **all 13 characteristics**, 22 stops, **2.02 km**.
 
-## Notes / caveats
+## Notes and caveats
+
 - The two **Kjugekull** lists are a single crag — a tight ~3 km walkable loop.
 - The eight **style lists** were read off a photo of the guidebook page. Where the book and 27crags disagree on a grade, the app shows the 27crags grade, because every other number on the map comes from there too.
 - [`ROUTES.md`](ROUTES.md) covers the four PDF lists only; the style lists are in the app.
 - The two **Around Ivösjön** lists span ~13 crags around the lake (some across water); their "routes" are a visiting *order*, not a footpath. Distances are straight-line sums, not trail-routed.
 - Boulders that are unclimbed projects (no 27crags link in the PDF) are excluded.
 
-Lists © **Carl Nilsask** — [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing). Boulder data © 27crags / thetopo.com and the respective contributors.
+## Access and ethics
+
+Every walk opens with the **Access & ethics** notice of each crag it touches, in the crag's own words — bird restrictions, parking that fits one car, houses to keep a low profile near. Read it before you go. Brush your tick marks, take your rubbish home, and park so a tractor can still get past.
+
+## Credits
+
+Lists © **Carl Nilsask** — [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing).
+The eight style lists come from the "Problem styles" page of the printed **Kjugekull guidebook**.
+*Affonsos Darlings* was proposed by **Affonso**.
+Boulder data © **27crags / thetopo.com** and the respective contributors.
+Map tiles © **[OpenTopoMap](https://opentopomap.org)** and **OpenStreetMap** contributors (CC-BY-SA).
