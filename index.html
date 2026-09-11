@@ -435,7 +435,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
         <div class="chips" id="doneChips"></div>
         <div class="note" id="tNote"></div></div>
     </div>
-    <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.</div></div>
+    <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.<span id="visits" hidden title="One for each browser, counted the first time it opens the page."></span></div></div>
   </div>
 </div>
 <div id="editor">
@@ -1988,4 +1988,32 @@ showTab(GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){r
 if(CIRCUITS.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
 renderLists();
 render(true);
+
+/* ---- how many have opened this ----
+ * There is no backend here, so a free counter service holds the number and the
+ * browser itself says whether it is new: the first visit adds one and writes a
+ * mark, every visit after that only reads. The mark is per browser, so the same
+ * person on a phone and on a laptop counts twice, and a cleared store counts
+ * again. It is a count of browsers, which is the closest a page with no login
+ * can come to a count of people.
+ *
+ * The mark is written only after the service has answered, so a first visit
+ * with no signal is counted on the next one instead of being lost. Nothing is
+ * sent but the request itself; if it fails - no signal, the service gone, a
+ * file:// page - the line stays away and nothing else changes. */
+var SEEN_KEY='kjuge.seen', COUNTER='https://abacus.jasoncameron.dev/';
+(function(){
+  var seen=null;try{seen=localStorage.getItem(SEEN_KEY);}catch(e){}
+  // "hit" adds one and gives the total back; "get" only reads it.
+  fetch(COUNTER+(seen?'get':'hit')+'/kjuge-circuits/visitors').then(function(r){
+    if(!r.ok)throw 0;
+    try{localStorage.setItem(SEEN_KEY,'1');}catch(e){}
+    return r.json();
+  }).then(function(d){
+    if(!d||typeof d.value!=='number')return;
+    var el=document.getElementById('visits');
+    el.textContent=' Opened by '+d.value+' climbers.';
+    el.hidden=false;
+  }).catch(function(){});
+})();
 </script></body></html>
