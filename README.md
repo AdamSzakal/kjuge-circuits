@@ -15,7 +15,7 @@ Pick a circuit, get the shortest walk through it, and take the whole thing to th
 [![npm packages](https://img.shields.io/badge/npm_packages-0-22c55e?style=flat-square)](#why-one-file)
 [![PWA](https://img.shields.io/badge/PWA-installable-8b5cf6?style=flat-square)](#take-it-to-the-crag)
 
-<img src="docs/demo.gif" width="820" alt="The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter">
+<img src="docs/demo.gif" width="280" alt="The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter">
 
 <sub>Rebuilt from the live app by <a href="record_demo.js"><code>record_demo.js</code></a> — run it whenever the interface changes.</sub>
 
@@ -27,7 +27,7 @@ Pick a circuit, get the shortest walk through it, and take the whole thing to th
 
 Four bouldering top-lists for **Kjugekull** and **Around Ivösjön** were published as a PDF by **Carl Nilsask** in 2021. They are a good list and a bad map: hundreds of boulders, no order, no walk.
 
-This project takes every boulder on those lists, looks each one up on [27crags](https://27crags.com) (now thetopo.com) for its GPS position, and plots the shortest walk through them all. Then it does the same for the eight **Problem styles** lists of the printed Kjugekull guidebook, and for two circles the community made — so there are **14 circuits** in the app, and you can build your own out of any of the 3 141 boulders in the dataset.
+This project takes every boulder on those lists, looks each one up on 27crags (now thetopo) for its GPS position, and plots the shortest walk through them all. Then it does the same for the eight **Problem styles** lists of the printed Kjugekull guidebook, and for two circles the community made — so there are **14 circuits** in the app, and you can build your own out of any of the 3 141 boulders in the dataset.
 
 It is one HTML file. No backend, no login, no build step, no packages.
 
@@ -216,5 +216,5 @@ Every walk opens with the **Access & ethics** notice of each crag it touches, in
 Lists © **Carl Nilsask** — [original PDF](https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing).
 The eight style lists come from the "Problem styles" page of the printed **Kjugekull guidebook**.
 *Affonsos Darlings* was proposed by **Affonso**.
-Boulder data © **27crags / thetopo.com** and the respective contributors.
+Boulder data © **27crags / thetopo** and the respective contributors.
 Map tiles © **[OpenTopoMap](https://opentopomap.org)** and **OpenStreetMap** contributors (CC-BY-SA).
