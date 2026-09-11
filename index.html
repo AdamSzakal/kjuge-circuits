@@ -255,6 +255,21 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 .note{color:var(--ink3);font-size:12px;margin-top:8px}
 .note a{color:var(--link)}
 /* ---- the walk: what the crag asks of you, then the stops in order ---- */
+/* ---- a section that folds ----
+ * The same chevron as the access notice below, without its warning colours.
+ * Once the walk is on the device the fold closes: the one line of the summary
+ * is all the reassurance that is wanted, and the counts and the buttons stay
+ * one tap under it. */
+.fold>summary{cursor:pointer;display:flex;align-items:center;gap:8px;list-style:none;min-height:26px}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:'';flex:none;width:7px;height:7px;margin-left:auto;
+  border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);
+  transform:translateY(-2px) rotate(45deg);transition:transform .18s}
+.fold[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+#offState{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:4px}
+#offState.ok{color:var(--ok)}
+#offState .ic{width:14px;height:14px;stroke-width:2.6}
+#offClear{margin-top:8px}
 /* The access text is the crag's own, emoji and line breaks included, so it is
    printed as it was written instead of being reflowed into one paragraph. */
 .access{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:8px 12px;font-size:13px}
@@ -299,6 +314,15 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
   padding-bottom:6px;margin:2px 0 8px}
 .strip img{flex:none;width:132px;height:90px;object-fit:cover;border-radius:8px;
   background:var(--bg3);cursor:pointer;display:block}
+/* ---- a word over the map ----
+ * For something that happened without being asked for. It takes no taps and
+ * it goes by itself, so it never stands between you and the map. The band it
+ * centres in keeps it off the panel and off the locate button. */
+#toast{position:fixed;z-index:1600;top:calc(12px + env(safe-area-inset-top));left:300px;right:60px;
+  width:fit-content;max-width:100%;margin:0 auto;padding:9px 13px;border-radius:14px;
+  background:var(--bg);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);
+  font-size:13px;line-height:1.35;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
+#toast.on{opacity:1}
 #lb{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 #lb[hidden]{display:none}
@@ -317,6 +341,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
      way in: a tap on the grab bar folds the body out and back. The editor is
      still parked off-screen until it is opened. */
   #locate{top:calc(10px + env(safe-area-inset-top))}
+  #toast{left:10px}
   #panel,#editor{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;max-height:88vh;
     border-radius:22px 22px 0 0;display:flex}
   #panel{box-shadow:0 -2px 18px rgba(0,0,0,.18)}
@@ -380,8 +405,8 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
     <span id="wsum"></span>
   </div>
   <div id="tabs" role="tablist">
-    <button role="tab" data-tab="walk" id="tabWalk">The walk</button>
     <button role="tab" data-tab="circuits" id="tabCircuits">Circuits<span class="tcount" id="cbadge" hidden></span></button>
+    <button role="tab" data-tab="walk" id="tabWalk">The walk</button>
     <button role="tab" data-tab="filters" id="tabFilters">Filters<span class="tdot" id="fbadge" hidden></span></button>
   </div>
   <div id="pbody">
@@ -390,14 +415,16 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
     </div>
     <div id="wbody" class="pane">
       <div class="sec" id="accessSec" hidden></div>
-      <div class="sec"><div class="hdr"><b>Offline</b><button class="mini" id="offClear" hidden>Clear</button></div>
+      <details class="sec fold" id="offSec">
+        <summary><b>Offline</b><span id="offState"></span></summary>
         <button class="mini wide" id="offSave">Save this walk for offline</button>
-        <div class="note" id="offNote"></div></div>
-      <div class="sec" id="geoSec" hidden><div class="note" id="geoNote"></div></div>
+        <div class="note" id="offNote"></div>
+        <button class="mini" id="offClear" hidden>Clear</button>
+      </details>
       <div class="sec"><div id="walkList"></div></div>
     </div>
     <div id="cbody" class="pane">
-      <div class="sec"><div class="hdr"><b class="flex">Pick one or several. They merge into one walk.</b><button class="mini" id="lNone">None</button></div><div id="listSel"></div><div class="note" id="hiddenNote"></div></div>
+      <div class="sec"><div class="hdr"><b class="flex">Pick one or several. They merge into one walk.</b><button class="mini" id="lNone">None</button></div><div id="listSel"></div></div>
     </div>
     <div id="fbody" class="pane">
       <div class="sec"><div class="hdr"><b class="flex" id="fsum">Filters narrow what the picked circuits show.</b><button class="mini" id="fReset" hidden>Reset</button></div></div>
@@ -434,6 +461,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
 </div>
 <div id="map"></div>
 <button id="locate" aria-label="Show where I am" title="Show where I am"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.2"/><path d="M10 1.6v2.6M10 15.8v2.6M18.4 10h-2.6M4.2 10H1.6"/></svg></button>
+<div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="sheet" hidden><div id="shead"><b id="stitle"></b><button id="sclose" aria-label="Close"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button></div><div id="sbody"></div></div>
 <div id="lb" hidden><button id="lbClose" aria-label="Close picture"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button><img id="lbImg" alt=""><div id="lbCap"></div></div>
 <script>
@@ -496,7 +524,7 @@ function tileOp(mode,fn){
 }
 function tileGet(k){return tileOp('readonly',function(st){return st.get(k);});}
 function tilePut(k,b){return tileOp('readwrite',function(st){st.put(b,k);});}
-function tileCount(){return tileOp('readonly',function(st){return st.count();}).then(function(n){return n||0;});}
+function tileKeys(){return tileOp('readonly',function(st){return st.getAllKeys();}).then(function(k){return k||[];});}
 function tileClear(){return tileOp('readwrite',function(st){st.clear();});}
 
 // A tile is drawn from the store when it is there, and from the network when
@@ -539,7 +567,6 @@ var ICON_PATH={
   plus:'M10 4.5v11M4.5 10h11',
   close:'M5.5 5.5l9 9M14.5 5.5l-9 9',
   pencil:'M12.7 3.7l3.6 3.6-8.5 8.5H4.2v-3.6z',
-  eyeoff:'M2.5 10S5.5 5 10 5s7.5 5 7.5 5-3 5-7.5 5S2.5 10 2.5 10zM10 12.2a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4zM4 4l12 12',
   tick:'M10 2.8a7.2 7.2 0 100 14.4 7.2 7.2 0 000-14.4zM6.4 10.2l2.5 2.5 4.7-5.1'
 };
 function icon(n){return '<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="'+ICON_PATH[n]+'"/></svg>';}
@@ -548,7 +575,7 @@ function stars(r,noNum){if(r==null)return '';var full=Math.round(r),s='';for(var
 // One boulder, the way a popup and the bottom sheet both read it.
 // A phone opens the link in the same tab: a new tab keeps iOS in Safari
 // instead of handing the address over to the 27crags app.
-// `acts` adds the two buttons of a stop: put it in the circuit, or hide it.
+// `acts` adds the two buttons of a stop: mark it done, or put it in the circuit.
 // The search popup leaves them off, because it carries a button of its own.
 function probRow(b,num,acts){
   var tgt=isMobile()?'':' target="_blank" rel="noopener"';
@@ -568,8 +595,7 @@ function probRow(b,num,acts){
     var on=inTarget(b.id);
     btns='<div class="pacts">'+
       '<button class="pact ptick'+(done?' on':'')+'" data-id="'+b.id+'" title="'+(done?'Done':'Mark as done')+'">'+icon('tick')+'</button>'+
-      '<button class="pact padd'+(on?' on':'')+'" data-id="'+b.id+'" title="'+(on?'In ':'Add to ')+esc(targetName())+'">'+icon(on?'check':'plus')+'</button>'+
-      '<button class="pact phide" data-id="'+b.id+'" title="Hide this boulder">'+icon('eyeoff')+'</button></div>';
+      '<button class="pact padd'+(on?' on':'')+'" data-id="'+b.id+'" title="'+(on?'In ':'Add to ')+esc(targetName())+'">'+icon(on?'check':'plus')+'</button></div>';
   }
   return '<div class="prow'+(done?' done':'')+'"><div class="pmain">'+(num?'<span class="pnum">'+num+'</span>':'')+
     '<a href="'+b.url+'"'+tgt+'>'+esc(b.name)+'</a> ('+esc(b.grade)+')'+stars(b.rating,true)+king+
@@ -684,7 +710,12 @@ DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){
   b.chars.forEach(function(c){allChars[c]=(allChars[c]||0)+1;});});});});
 var charList=Object.keys(allChars).sort(function(a,b){return allChars[b]-allChars[a];});
 var listOn={}, gradeOn={}, charOn={}, minRating=0;
-DATA.forEach(function(d,i){listOn[i]=(i===0);});
+/* A short warm-up circle is a kinder first visit than a hundred boulders, so
+ * it is the pick a first visit opens on. Found by title, so the order the
+ * lists are built in stays free to change. */
+var DEFAULT_LIST=0;
+DATA.forEach(function(d,i){if(d.title==='Affonsos Darlings')DEFAULT_LIST=i;});
+DATA.forEach(function(d,i){listOn[i]=(i===DEFAULT_LIST);});
 /* ---- the picks of the last visit ----
  * Stored by title, not by number, so a list added later cannot move somebody
  * else's pick. A link with its own lists in it always wins over the store. */
@@ -695,11 +726,12 @@ function savePicks(){
 }
 function restorePicks(){
   var raw;try{raw=localStorage.getItem(PICK_KEY);}catch(e){return false;}
-  if(!raw)return false;
+  if(raw===null)return false;        // never been here: take the default pick
   var on;try{on=JSON.parse(raw);}catch(e){return false;}
-  if(!on||!on.length)return false;   // an empty store falls back to the first list
+  if(!on)return false;
+  // Nothing stored is a choice of its own: the map browses every block.
   DATA.forEach(function(d,i){listOn[i]=on.indexOf(d.title)>=0;});
-  return DATA.some(function(_,i){return listOn[i];});
+  return true;
 }
 GORD.forEach(function(g){gradeOn[g]=true;});
 charList.forEach(function(c){charOn[c]=true;});
@@ -744,7 +776,6 @@ function parseHash(){
       if(list.length)CIRCUITS.push({n:nm,ids:list,on:on});
     });
   }
-  if(p.h!==undefined){hideIds={};p.h.split('.').filter(Boolean).forEach(function(s){hideIds[parseInt(s,36)]=1;});}
 }
 function syncHash(){
   var parts=[],lon=[];DATA.forEach(function(_,i){if(listOn[i])lon.push(i);});parts.push('l='+lon.join('-'));
@@ -755,8 +786,6 @@ function syncHash(){
   if(cs.length)parts.push('x='+cs.map(function(c){
     return (c.on?'1':'0')+'~'+encParam(c.n)+'~'+c.ids.map(function(id){return id.toString(36);}).join('.');
   }).join('!'));
-  var hid=Object.keys(hideIds);
-  if(hid.length)parts.push('h='+hid.map(function(id){return (+id).toString(36);}).join('.'));
   savePicks();
   history.replaceState(null,'','#'+parts.join('&'));
 }
@@ -783,12 +812,19 @@ function listMeta(d){
   return n>1?n+' crags':(d.dist/1000).toFixed(2)+' km';
 }
 function renderLists(){
-  // Built-in circuits come grouped by where they are from.
-  var h='',grp='';
-  DATA.forEach(function(d,i){
-    var g=d.group||'Lists';
-    if(g!==grp){grp=g;h+='<div class="lgroup">'+esc(g)+'</div>';}
-    h+=listRow({t:'d',i:i,on:listOn[i],color:d.color,title:d.title,meta:listMeta(d)});
+  // Built-in circuits come grouped by where they are from, in this order: the
+  // community circles are the ones to climb, so they come first. A group that
+  // is not named here follows as it comes. The numbers a share link carries
+  // are the ones DATA holds, so the order shown here never moves them.
+  var h='', groups=['Community','Top-lists','Guidebook styles'];
+  DATA.forEach(function(d){var g=d.group||'Lists';if(groups.indexOf(g)<0)groups.push(g);});
+  groups.forEach(function(g){
+    var rows='';
+    DATA.forEach(function(d,i){
+      if((d.group||'Lists')!==g)return;
+      rows+=listRow({t:'d',i:i,on:listOn[i],color:d.color,title:d.title,meta:listMeta(d)});
+    });
+    if(rows)h+='<div class="lgroup">'+esc(g)+'</div>'+rows;
   });
   h+='<div class="lgroup">My circuits</div>';
   h+=CIRCUITS.map(function(c,i){
@@ -896,20 +932,18 @@ function updateCSum(){
 function resetFilters(){
   GORD.forEach(function(g){gradeOn[g]=true;});
   charList.forEach(function(c){charOn[c]=true;});
-  minRating=0;hideIds={};hideDone=false;
+  minRating=0;hideDone=false;
   syncG();syncC();syncR();syncT();render(false);
 }
 // Header text says at a glance whether anything is being filtered away.
 function updateFSum(){
   var gOff=GORD.filter(function(g){return !gradeOn[g];}).length;
   var cOff=charList.filter(function(c){return !charOn[c];}).length;
-  var nHid=Object.keys(hideIds).length;
   var bits=[];
   if(gOff)bits.push(gOff+' of '+GORD.length+' grades off');
   if(cOff)bits.push(cOff+' of '+charList.length+' characters off');
   if(minRating)bits.push('min '+minRating+'★');
   if(hideDone)bits.push('done hidden');
-  if(nHid)bits.push(nHid+' hidden');
   var narrowed=bits.length>0;
   // The tab carries a dot while anything is narrowed; the pane says what.
   fsum.textContent=narrowed?bits.join(' · '):'Filters narrow what the picked circuits show.';
@@ -927,7 +961,6 @@ var PROBNUM={};
 // The drawn hit circle of each problem, so a list row can open its popup.
 var HIT_BY_ID={};
 var editIdx=-1;          // circuit open in the editor, -1 = none
-var hideIds={};
 var BY_ID={};ALL.forEach(function(e){BY_ID[e[0]]=e;});
 // Kjugekull alone: a pasted list of names is read against this first.
 var KJU_IDX=-1;CRAGS.forEach(function(c,i){if(c[0]==='kjugekull')KJU_IDX=i;});
@@ -951,6 +984,10 @@ function toB(e){
   return {id:e[0],name:e[1],grade:e[2],rating:e[3]<0?null:e[3],chars:CHARS_BY_URL[url]||[],
     url:url,lat:s[2],lng:s[3],label:c[1]+' \u00b7 '+s[1],cragIdx:s[0],mine:true};
 }
+// Every boulder in the dataset, shaped once and kept: browsing draws them all
+// again on every filter tap, and the shape of a boulder never changes.
+var BROWSE_B=null;
+function browseBoulders(){return BROWSE_B||(BROWSE_B=ALL.map(toB));}
 // Every boulder of every switched-on circuit.
 function mineBoulders(){
   var out=[],seen={};
@@ -980,7 +1017,7 @@ function addToCircuit(id,ci){
   if(!BY_ID[id])return false;
   if(ci===undefined)ci=targetIdx();
   var c=CIRCUITS[ci];if(c.ids.indexOf(id)>=0)return false;
-  c.ids.push(id);delete hideIds[id];return true;
+  c.ids.push(id);return true;
 }
 function removeFromCircuit(id,ci){
   var hit=false;
@@ -1159,6 +1196,10 @@ var qT;qEl.oninput=function(){clearTimeout(qT);qT=setTimeout(renderRes,120);};
  * in its own layer, so it never joins a walking route by accident. */
 var gqEl=document.getElementById('gq'), gqres=document.getElementById('gqres'), gqNote=document.getElementById('gqNote');
 var SEARCH_COL='#ff8c00';
+// Browsing the whole dataset: a neutral colour, because a grey block is not a
+// stop on anybody's route. `browsing` is the state of the last draw, and the
+// map has no view of its own until a draw has placed it.
+var BROWSE_COL='#5c636d', browsing=false, VIEW_SET=false;
 var searchLayer=L.layerGroup().addTo(map);
 var searchIds=[];        // hits of the query being shown
 var SEARCH_HIT={};       // route id -> its own search marker
@@ -1202,7 +1243,9 @@ function drawSearch(fitIfUnseen){
   });
   if(fitIfUnseen&&pts.length&&!seen)map.fitBounds(pts,fitOpts({maxZoom:16}));
   searchIds.forEach(function(id){
-    if(HIT_BY_ID[id])return;      // already on the map as part of a picked circuit
+    // Already on the map as part of a picked circuit. Browsing has no route to
+    // hide, so there the hit is drawn on top of its block all the same.
+    if(HIT_BY_ID[id]&&!browsing)return;
     var b=toB(BY_ID[id]);
     var dot=L.circleMarker([b.lat,b.lng],{pane:'stopPane',radius:DOT_R-3,color:'#fff',weight:3,
       fillColor:SEARCH_COL,fillOpacity:1,bubblingMouseEvents:false}).addTo(searchLayer);
@@ -1218,7 +1261,9 @@ function showBoulder(id){
   // No animation: Leaflet places the popup once the map has already moved.
   map.setView([b.lat,b.lng],17,{animate:false});
   if(isMobile())closePanel();
-  openStop(HIT_BY_ID[id]||SEARCH_HIT[id]);
+  // The orange hit is the answer to the search, so it opens before the block
+  // it stands on. Outside browsing only one of the two ever exists.
+  openStop(SEARCH_HIT[id]||HIT_BY_ID[id]);
 }
 gqres.onclick=function(ev){
   var row=ev.target.closest('.res');if(!row)return;
@@ -1299,12 +1344,6 @@ pasteMsg.onclick=function(ev){
   renderRes();renderPicked();renderLists();render(true);
 };
 
-/* ---- hidden list boulders ---- */
-document.getElementById('hiddenNote').onclick=function(ev){
-  if(!ev.target.classList.contains('unhide'))return;
-  hideIds={};render(false);
-};
-
 /* ---- one stop: a popup on a big screen, a bottom sheet on a phone ---- */
 var sheet=document.getElementById('sheet'), sbody=document.getElementById('sbody'),
     stitle=document.getElementById('stitle');
@@ -1313,8 +1352,10 @@ var sheet=document.getElementById('sheet'), sbody=document.getElementById('sbody
 var activeDot=null, activeMark=null;
 function dotLook(dot,state){
   if(!dot)return;
-  if(state==='hover')dot.setStyle({radius:DOT_R+4,color:'#fff',weight:3,fillOpacity:1});
-  else dot.setStyle({radius:DOT_R,color:'#000',weight:1,fillOpacity:.9});
+  // Each dot carries the size it was drawn at: browsing draws smaller ones.
+  var r=dot._r||DOT_R;
+  if(state==='hover')dot.setStyle({radius:r+4,color:'#fff',weight:3,fillOpacity:1});
+  else dot.setStyle({radius:r,color:'#000',weight:1,fillOpacity:.9});
   if(state==='hover')dot.bringToFront();
 }
 function clearActiveDot(){
@@ -1329,11 +1370,11 @@ function setActiveDot(hit){
   var s=2*(DOT_R+5);
   activeMark=L.marker(hit.getLatLng(),{pane:'activePane',interactive:false,keyboard:false,
     icon:L.divIcon({className:'adot',iconSize:[s,s],
-      html:'<span style="background:none">'+hit._num+'</span>'})}).addTo(map);
+      html:'<span style="background:none">'+(hit._num||'')+'</span>'})}).addTo(map);
   activeMark.getElement().style.background=hit._col;
 }
 // The stop that is open, by its coordinates, and every stop of the last draw
-// under the same key. Adding or hiding a boulder redraws the map, and the two
+// under the same key. Adding or ticking a boulder redraws the map, and the two
 // together put the same stop back with its new contents.
 var openKey=null, HIT_AT={};
 function closeSheet(){sheet.hidden=true;sbody.innerHTML='';stitle.textContent='';openKey=null;clearActiveDot();}
@@ -1373,10 +1414,14 @@ function blockLink(si){
 
 /* ---- the big picture ---- */
 var lb=document.getElementById('lb'), lbImg=document.getElementById('lbImg'), lbCap=document.getElementById('lbCap');
-function closePhoto(){lb.hidden=true;lbImg.removeAttribute('src');}
+function closePhoto(){lb.hidden=true;lbImg.onerror=null;lbImg.removeAttribute('src');}
 function openPhoto(si,ti){
   var t=SECT[si][5][ti];
   if(!t)return;
+  // Only the strip's picture is kept for the woods, so when the big one cannot
+  // come the small one stands in: smaller, but the lines on it still read, and
+  // the caption under it is the same either way.
+  lbImg.onerror=function(){lbImg.onerror=null;lbImg.src=photoUrl(t[0],false);};
   lbImg.src=photoUrl(t[0],true);
   // The picture names the boulders drawn on it, the way a guidebook topo does,
   // and each name opens that line on 27crags. A phone follows the link in the
@@ -1408,11 +1453,10 @@ document.addEventListener('click',function(ev){
   if(!ev.target.closest)return;
   var im=ev.target.closest('.strip img');
   if(im){openPhoto(+im.dataset.s,+im.dataset.t);return;}
-  var btn=ev.target.closest('.padd,.phide,.ptick');
+  var btn=ev.target.closest('.padd,.ptick');
   if(!btn)return;
   var id=+btn.dataset.id;
-  if(btn.classList.contains('phide')){hideIds[id]=1;render(false);}
-  else if(btn.classList.contains('ptick')){toggleTick(id);syncT();render(false);}
+  if(btn.classList.contains('ptick')){toggleTick(id);syncT();render(false);}
   else toggleInTarget(id);
 });
 document.getElementById('sclose').onclick=closeSheet;
@@ -1435,7 +1479,9 @@ window.addEventListener('resize',function(){
 var WALK=[];
 function renderWalk(){
   if(!WALK.length){
-    walkList.innerHTML='<div class="note">Nothing picked yet. Choose a circuit on the <b>Circuits</b> tab, or build one of your own.</div>';
+    walkList.innerHTML=browsing?
+      '<div class="note">Nothing picked, so the map shows every block of the dataset. Tap one to read its boulders. Choose a circuit on the <b>Circuits</b> tab, or build one of your own, to get a walking route through it.</div>':
+      '<div class="note">Nothing picked yet. Choose a circuit on the <b>Circuits</b> tab, or build one of your own.</div>';
     accessSec.hidden=true;accessSec.innerHTML='';
     pstart.classList.add('empty');
     return;
@@ -1497,6 +1543,8 @@ function drawMe(){
     meDot.setLatLng(at);meRing.setLatLng(at).setRadius(ME.acc);
   }
 }
+// "3.6 MB" while it is small enough to count in tenths, "36 MB" after that.
+function fmtMB(mb){return mb<10?mb.toFixed(1):String(Math.round(mb));}
 // "240 m" close by, "1.2 km" further out, "480 km" from another county.
 function fmtDist(m){
   if(m<950)return Math.round(m/10)*10+' m';
@@ -1520,7 +1568,7 @@ function stopLocate(){
   drawMe();renderWalk();
 }
 function startLocate(){
-  if(!navigator.geolocation){offNoteGeo('This browser cannot report where you are.');return;}
+  if(!navigator.geolocation){toast('This browser cannot report where you are.');return;}
   locBtn.classList.add('wait');
   meWatch=navigator.geolocation.watchPosition(function(p){
     var first=(ME===null);
@@ -1532,26 +1580,40 @@ function startLocate(){
      * fix only takes the map with it when it lands near the walk. The dot and
      * the distances are still drawn, and tapping the button again goes there
      * anyway: that is somebody asking on purpose. */
-    if(first&&WALK.length&&distToWalk(ME.lat,ME.lng)>NEAR_LIMIT)following=false;
+    var away=WALK.length?distToWalk(ME.lat,ME.lng):0;
+    if(first&&WALK.length&&away>NEAR_LIMIT){
+      following=false;
+      // A map that stays put without a word reads as a map that is broken.
+      toast('You are '+fmtDist(away)+' from the walk, so the map stays on it. Tap the button again to go to you.');
+    }
     locBtn.classList.toggle('on',following);
     if(following)map.setView([ME.lat,ME.lng],Math.max(map.getZoom(),16),{animate:false});
   },function(err){
     locBtn.classList.remove('wait','on');
-    offNoteGeo(err.code===1?'Location is switched off for this page.':'Cannot find you yet — try again under open sky.');
+    toast(err.code===1?'Location is switched off for this page.':'Cannot find you yet — try again under open sky.');
     meWatch=null;
   },{enableHighAccuracy:true,maximumAge:5000,timeout:25000});
   following=true;
 }
-// Where-are-you trouble is its own message, not a comment on what is saved.
-var geoSec=document.getElementById('geoSec'), geoNote=document.getElementById('geoNote'), geoT=null;
-function offNoteGeo(msg){
-  geoNote.textContent=msg;geoSec.hidden=!msg;
-  clearTimeout(geoT);
-  if(msg)geoT=setTimeout(function(){geoSec.hidden=true;geoNote.textContent='';},8000);
+/* A short word over the map, for something the app did on its own. It asks
+ * for no answer, so it fades out by itself. A second toast replaces the first
+ * rather than queueing behind it: only the latest one is still true. */
+var toastEl=document.getElementById('toast'), toastT=null;
+function toast(msg){
+  clearTimeout(toastT);
+  // An empty word takes the toast away at once: it is no longer true.
+  if(!msg){toastEl.classList.remove('on');toastEl.hidden=true;return;}
+  toastEl.textContent=msg;toastEl.hidden=false;
+  // Unhidden first, then faded in on the next frame, or there is no fade.
+  requestAnimationFrame(function(){toastEl.classList.add('on');});
+  toastT=setTimeout(function(){
+    toastEl.classList.remove('on');
+    toastT=setTimeout(function(){toastEl.hidden=true;},250);   // after the fade
+  },6000);
 }
 locBtn.onclick=function(){
   if(meWatch==null){startLocate();return;}
-  if(!following&&ME){following=true;locBtn.classList.add('on');offNoteGeo('');
+  if(!following&&ME){following=true;locBtn.classList.add('on');toast('');
     map.setView([ME.lat,ME.lng],Math.max(map.getZoom(),16));return;}
   stopLocate();
 };
@@ -1563,8 +1625,12 @@ map.on('dragstart',function(){if(following){following=false;locBtn.classList.rem
  * to the sharpest one OpenTopoMap draws. A cap keeps a careless tap on a list
  * that spans a whole lake from pulling thousands of tiles off a free server. */
 var OFF_ZOOMS=[13,14,15,16,17], OFF_CAP=1500, LAST_BOUNDS=null;
+// The walk the offline line was last taken over, so a new walk asks again,
+// and the answer it gave, because the fold follows that and nothing else.
+var OFF_SIG=null, OFF_READY=null;
 var offSave=document.getElementById('offSave'), offNote=document.getElementById('offNote'),
-    offClear=document.getElementById('offClear');
+    offClear=document.getElementById('offClear'), offSec=document.getElementById('offSec'),
+    offState=document.getElementById('offState'), offWaiting=false;
 /* Leaflet's own getTileUrl() takes its zoom from the map, not from the tile it
  * is handed, so it cannot address a zoom the map is not showing. Saving a walk
  * covers five zooms at once, so the address is built from the layer's own
@@ -1586,41 +1652,93 @@ function tilesFor(bounds){
   });
   return out;
 }
-// Every picture of every stop on the walk, at the size the strip shows.
+/* Every picture of every stop on the walk, at the size the strip shows. The
+ * big one behind a tap is about ten times the download, which is not worth it
+ * for a whole walk: with no signal the strip's own picture stands in for it.
+ * One address per picture, and the list is where that is decided. */
+var PHOTO_SIZES=[false];
+// What one picture costs, near enough: the strip runs 40-70 kB. A long walk is
+// still a download, so the size is said before the tap and not after it.
+var PHOTO_MB=0.06;
 function walkPhotos(){
   var out=[],seen={};
   WALK.forEach(function(w){
     if(w.si===undefined||seen[w.si])return;
     seen[w.si]=1;
-    (SECT[w.si][5]||[]).forEach(function(t){out.push(photoUrl(t[0],false));});
+    (SECT[w.si][5]||[]).forEach(function(t){
+      PHOTO_SIZES.forEach(function(big){out.push(photoUrl(t[0],big));});
+    });
   });
   return out;
 }
+/* ---- is this walk on the device? ----
+ * Drawing the map keeps every tile it draws, and the photo cache holds the
+ * pictures of every walk that was ever saved, so the size of neither store
+ * says anything about this walk: it is only saved when the tiles and the
+ * pictures it asks for are all there. Counted over those, the reassurance is
+ * one that holds. */
+function walkSaved(){
+  var want=LAST_BOUNDS?tilesFor(LAST_BOUNDS.pad(0.15)):[], wantP=walkPhotos();
+  return Promise.all([tileKeys(),photoKeys()]).then(function(r){
+    var hasT={};r[0].forEach(function(k){hasT[k]=1;});
+    var hasP={};r[1].forEach(function(u){hasP[u]=1;});
+    var have=0,haveP=0;
+    want.forEach(function(c){if(hasT[c.z+'/'+c.x+'/'+c.y])have++;});
+    wantP.forEach(function(u){if(hasP[u])haveP++;});
+    return {have:have,want:want.length,total:r[0].length,
+      // Pictures, not addresses: each picture is kept at every size.
+      haveP:Math.floor(haveP/PHOTO_SIZES.length),wantP:wantP.length/PHOTO_SIZES.length,
+      totalP:r[1].length};
+  });
+}
 var PHOTO_CACHE='kjuge-photos-v1';
-function photoCount(){
-  if(!window.caches)return Promise.resolve(0);
+function photoKeys(){
+  if(!window.caches)return Promise.resolve([]);
   return caches.open(PHOTO_CACHE).then(function(c){return c.keys();})
-    .then(function(k){return k.length;}).catch(function(){return 0;});
+    .then(function(k){return k.map(function(r){return r.url;});}).catch(function(){return [];});
 }
 // Counted from what is actually stored, so the line still reads true after a
-// reload, and after the browser has thrown something away.
+// reload, and after the browser has thrown something away. The fold moves only
+// when the answer changes: closed once the walk is on the device, open again
+// when it is not. A tap that leaves the answer alone leaves the fold where the
+// reader put it.
 function offReport(){
-  Promise.all([tileCount(),photoCount()]).then(function(r){
-    var n=r[0], ph=r[1], bits=[];
-    offClear.hidden=!(n||ph);
-    if(n)bits.push(n+' map tiles');
-    if(ph)bits.push(ph+' photographs');
-    if(!bits.length){
-      offNote.textContent='Save the map of this walk while you have signal. The list, the grades and your ticks already work offline.';
+  return walkSaved().then(function(w){
+    // Pictures only reach the device through the worker, so a page opened from
+    // a file promises none: there, the map alone is the whole of offline.
+    var pics=SW?w.wantP:0;
+    var saved=w.want>0&&w.have>=w.want&&w.haveP>=pics;
+    var fromFile=SW?'':' Photographs need the app opened from its web address, not from a file.';
+    offClear.hidden=!(w.total||w.totalP);
+    offState.innerHTML=saved?icon('check')+'<span>Ready for no signal</span>':'';
+    offState.classList.toggle('ok',saved);
+    if(saved!==OFF_READY){OFF_READY=saved;offSec.open=!saved;}
+    var bits=[];
+    if(saved){
+      bits.push(w.want+' map tiles');
+      if(pics)bits.push(pics+' photograph'+(pics===1?'':'s'));
+      offNote.textContent='This walk is on the device: '+bits.join(' and ')+
+        '. It opens with no signal.'+fromFile;
       return;
     }
-    offNote.textContent=bits.join(' and ')+' saved. This walk opens with no signal.'+
-      (SW?'':' Photographs need the app opened from its web address, not from a file.');
+    if(w.have)bits.push(w.have+' of '+w.want+' map tiles');
+    if(pics&&w.haveP)bits.push(w.haveP+' of '+pics+' photographs');
+    offNote.textContent=(bits.length?bits.join(' and ')+' of this walk are already here. ':'')+
+      'Save this walk while you have signal: '+w.want+' map tiles'+
+      (pics?' and '+pics+' photographs, about '+fmtMB(pics*PHOTO_MB)+' MB':'')+
+      '. The list, the grades and your ticks already work offline.';
   });
+}
+// The walk is on the device: one word over the map, and the fold closes over
+// the counts. Photographs come after the tiles, so this waits for both.
+function offDone(){
+  offWaiting=false;
+  offReport().then(function(){toast('Saved. This walk opens with no signal.');});
 }
 navigator.serviceWorker&&navigator.serviceWorker.addEventListener&&
 navigator.serviceWorker.addEventListener('message',function(ev){
-  if(ev.data&&ev.data.type==='photos-cached')offReport();
+  if(!ev.data||ev.data.type!=='photos-cached')return;
+  if(offWaiting)offDone();else offReport();
 });
 offClear.onclick=function(){
   Promise.all([tileClear(),window.caches?caches.delete(PHOTO_CACHE):null]).then(offReport);
@@ -1633,14 +1751,14 @@ offSave.onclick=function(){
     return;
   }
   offSave.disabled=true;
-  var done=0, kept=0, i=0;
+  var done=0, i=0;
   function step(){
     if(i>=list.length)return Promise.resolve();
     var c=list[i++], key=c.z+'/'+c.x+'/'+c.y;
     return tileGet(key).then(function(b){
       if(b&&b.size)return null;
       return fetch(tileUrl(c)).then(function(r){return r.ok?r.blob():null;})
-        .then(function(bl){if(bl&&bl.size){kept++;return tilePut(key,bl);}});
+        .then(function(bl){if(bl&&bl.size)return tilePut(key,bl);});
     }).catch(function(){}).then(function(){
       done++;
       offNote.textContent='Saving '+done+' of '+list.length+'…';
@@ -1653,11 +1771,12 @@ offSave.onclick=function(){
     offSave.disabled=false;
     var photos=walkPhotos();
     if(SW&&SW.active&&photos.length){
-      offNote.textContent='Map saved. Fetching '+photos.length+' photographs…';
+      var pics=photos.length/PHOTO_SIZES.length;
+      offNote.textContent='Map saved. Fetching '+pics+' photograph'+(pics===1?'':'s')+'…';
+      offWaiting=true;
       SW.active.postMessage({type:'cache-photos',urls:photos});
     }else{
-      offNote.textContent=kept?'Saved. '+kept+' new tiles are on this device.':'Already saved.';
-      setTimeout(offReport,1800);
+      offDone();
     }
   });
 };
@@ -1674,7 +1793,6 @@ walkList.onclick=function(ev){
 };
 
 function boulderVisible(b){
-  if(b.id&&hideIds[b.id]) return false;
   if(hideDone&&b.id&&TICKS[b.id]) return false;
   if(!gradeOn[b.grade]) return false;
   if(Math.round(b.rating==null?0:b.rating) < minRating) return false;
@@ -1688,13 +1806,20 @@ function render(fit,focusId){
   // The dots are drawn again below, so the old active one is gone.
   PROBNUM={};HIT_BY_ID={};HIT_AT={};WALK=[];clearActiveDot();
   updateFSum();updateCSum();
-  var nHid=Object.keys(hideIds).length;
-  document.getElementById('hiddenNote').innerHTML=nHid?nHid+' boulder'+(nHid>1?'s':'')+' hidden. <a href="#" class="unhide" onclick="return false">Show all</a>':'';
   var sel=[];DATA.forEach(function(_,i){if(listOn[i])sel.push(i);});
-  var mine=mineBoulders().filter(boulderVisible);
   var onC=[];CIRCUITS.forEach(function(c,i){if(c.on&&c.ids.length)onC.push(i);});
+  /* Nothing picked used to leave an empty map, which reads as a fault. Every
+   * block of the dataset is drawn instead, so the map can be browsed and a
+   * circuit built out of what it shows. Nobody picked an order, so browsing
+   * draws no walking route: only the blocks, in a colour of their own. */
+  browsing=!sel.length&&!onC.length;
+  var mine=(browsing?browseBoulders():mineBoulders()).filter(boulderVisible);
   // one list or one circuit keeps its own colour; a mix is drawn in red.
-  var col=(!sel.length&&onC.length===1)?circuitColor(onC[0]):(sel.length===1&&!mine.length?DATA[sel[0]].color:'#e6194B');
+  var col=browsing?BROWSE_COL:
+    (!sel.length&&onC.length===1)?circuitColor(onC[0]):(sel.length===1&&!mine.length?DATA[sel[0]].color:'#e6194B');
+  // Browsing puts hundreds of blocks on the screen at once, so their dots are
+  // smaller and their tap areas do not swallow each other.
+  var dotR=browsing?DOT_R-7:DOT_R, hitR=browsing?HIT_R-8:HIT_R;
   var stopsMap={}, parkings=[];
   sel.forEach(function(li){
     var d=DATA[li];if(d.parking)parkings.push(d.parking);
@@ -1705,7 +1830,8 @@ function render(fit,focusId){
       vis.forEach(function(b){if(!s.seen[b.url]){s.seen[b.url]=1;s.b.push(b);}});
     });
   });
-  // Circuits join the same stops. The filters above apply to them too.
+  // Circuits, and the whole dataset while browsing, join the same stops. The
+  // filters above apply to them too.
   mine.forEach(function(b){
     var key=b.lat.toFixed(6)+','+b.lng.toFixed(6);
     var s=stopsMap[key]||(stopsMap[key]={lat:b.lat,lng:b.lng,label:b.label,seen:{},b:[]});
@@ -1715,21 +1841,30 @@ function render(fit,focusId){
   });
   var stops=Object.keys(stopsMap).map(function(k){return stopsMap[k];});
   var nB=stops.reduce(function(a,s){return a+s.b.length;},0);
-  if(stops.length===0){wsum.textContent=(sel.length?'0 boulders':'Nothing selected');
+  // Browsing shows everything, so an empty map now only means the filters left
+  // nothing at all.
+  if(stops.length===0){wsum.textContent='0 boulders';
     renderWalk();closeStop();drawSearch();renderPicked();syncHash();return;}
   var C=stops.map(function(s){return [s.lat,s.lng];});
-  var cl=C.reduce(function(a,c){return a+c[0];},0)/C.length, cg=C.reduce(function(a,c){return a+c[1];},0)/C.length;
-  var park=null;parkings.forEach(function(p){if(park===null||hav([cl,cg],p)<hav([cl,cg],park))park=p;});
-  var startIdx=0,bd=Infinity;C.forEach(function(c,i){var ref=park||[cl,cg];var d=hav(c,ref);if(d<bd){bd=d;startIdx=i;}});
-  var order=tsp(C,startIdx);
+  // The order of the walk, and where it starts. Browsing keeps the blocks as
+  // they came: there is no walk to route.
+  var order, park=null;
+  if(browsing)order=stops.map(function(_,i){return i;});
+  else{
+    var cl=C.reduce(function(a,c){return a+c[0];},0)/C.length, cg=C.reduce(function(a,c){return a+c[1];},0)/C.length;
+    parkings.forEach(function(p){if(park===null||hav([cl,cg],p)<hav([cl,cg],park))park=p;});
+    var startIdx=0,bd=Infinity;C.forEach(function(c,i){var ref=park||[cl,cg];var d=hav(c,ref);if(d<bd){bd=d;startIdx=i;}});
+    order=tsp(C,startIdx);
+  }
   var line=[],dist=0,prev=park,probN=0;
   order.forEach(function(oi,pos){
     var s=stops[oi];var pt=[s.lat,s.lng];line.push(pt);
-    if(prev)dist+=hav(prev,pt);prev=pt;
+    if(!browsing){if(prev)dist+=hav(prev,pt);prev=pt;}
     var sector=s.label.split(' · ').pop();
     // Problems keep counting along the route, so every problem has one number.
+    // Browsing has no route, so nothing there is numbered.
     var probs=s.b.slice().sort(function(a,b){return GORD.indexOf(a.grade)-GORD.indexOf(b.grade);});
-    var nums=probs.map(function(){return ++probN;});
+    var nums=probs.map(function(){return browsing?0:++probN;});
     probs.forEach(function(b,k){var bid=b.id||ID_BY_URL[b.url];if(bid)PROBNUM[bid]=nums[k];});
     // The stop reads as a block page: its photographs, then every boulder of
     // the stop with the two buttons, then the block on 27crags.
@@ -1744,14 +1879,16 @@ function render(fit,focusId){
       gr=GORD[lo]+(lo!==hi?'–'+GORD[hi]:'');
     }
     var nd=probs.filter(function(b){return b.id&&TICKS[b.id];}).length;
-    WALK.push({n:pos+1,key:key,lat:pt[0],lng:pt[1],sector:sector,nb:probs.length,gr:gr,si:si,done:nd});
+    // The written walk is the route, so browsing writes none.
+    if(!browsing)WALK.push({n:pos+1,key:key,lat:pt[0],lng:pt[1],sector:sector,nb:probs.length,gr:gr,si:si,done:nd});
     // Visible dot: only decoration, so it never steals a tap from the hit area.
-    var dot=L.circleMarker(pt,{pane:'stopPane',radius:DOT_R,color:'#000',weight:1,fillColor:col,fillOpacity:.9,interactive:false}).addTo(layer);
+    var dot=L.circleMarker(pt,{pane:'stopPane',radius:dotR,color:'#000',weight:1,fillColor:col,fillOpacity:.9,interactive:false}).addTo(layer);
+    dot._r=dotR;
     // Invisible, larger circle that catches clicks and taps around the dot.
     // bubblingMouseEvents:false keeps the tap on the stop: otherwise it also
     // counts as a tap on the map, which closes the sheet again at once.
-    var hit=L.circleMarker(pt,{pane:'stopPane',radius:HIT_R,stroke:false,fillColor:col,fillOpacity:.001,bubblingMouseEvents:false}).addTo(layer);
-    hit._dot=dot;hit._num=pos+1;hit._col=col;hit._title=sector;hit._body=body;hit._key=key;
+    var hit=L.circleMarker(pt,{pane:'stopPane',radius:hitR,stroke:false,fillColor:col,fillOpacity:.001,bubblingMouseEvents:false}).addTo(layer);
+    hit._dot=dot;hit._num=browsing?0:pos+1;hit._col=col;hit._title=sector;hit._body=body;hit._key=key;
     HIT_AT[key]=hit;
     if(canHover){
       // Grow the dot while the pointer is over the hit area. The open stop keeps
@@ -1761,26 +1898,37 @@ function render(fit,focusId){
     }
     probs.forEach(function(b){var bid=b.id||ID_BY_URL[b.url];if(bid)HIT_BY_ID[bid]=hit;});
     // Stop numbers belong to a route, so browsing leaves them off.
-    hit.bindTooltip(String(pos+1),{permanent:true,direction:'center',className:'num'});
+    if(!browsing)hit.bindTooltip(String(pos+1),{permanent:true,direction:'center',className:'num'});
     // A phone shows the stop in the bottom sheet; a big screen in a popup.
     hit._html=html;
     if(isMobile())hit.on('click',function(){openStop(hit);});
     else hit.bindPopup(html,POPUP_OPTS());
   });
-  if(line.length>1)L.polyline(line,{pane:'routePane',color:col,weight:4,opacity:.6,interactive:false}).addTo(layer);
+  if(!browsing&&line.length>1)L.polyline(line,{pane:'routePane',color:col,weight:4,opacity:.6,interactive:false}).addTo(layer);
   var lbl=(!sel.length&&onC.length===1?circuitName(onC[0])+' · ':'');
   var nDone=0;
   stops.forEach(function(st){st.b.forEach(function(b){if(b.id&&TICKS[b.id])nDone++;});});
-  wsum.innerHTML=esc(lbl)+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km'+
+  // Browsing counts blocks, not stops, and has no distance to give.
+  wsum.innerHTML=browsing?
+    'Browsing '+nB+' boulders · '+stops.length+' blocks'+(nDone?' · <span class="done-n">'+nDone+' done</span>':''):
+    esc(lbl)+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km'+
     (nDone?' · <span class="done-n">'+nDone+' done</span>':'');
   renderWalk();
   // The parking is only the start point of the walk; nothing is drawn there.
   var all=line;
-  LAST_BOUNDS=line.length?L.latLngBounds(line):null;
+  // Only a walk can be saved for offline, so browsing offers no bounds.
+  LAST_BOUNDS=(browsing||!line.length)?null:L.latLngBounds(line);
+  // A different walk is a different map to save, so the offline line is taken
+  // again. Only the first answer moves the fold; after that it is the reader's.
+  var sig=LAST_BOUNDS?LAST_BOUNDS.toBBoxString():'';
+  if(sig!==OFF_SIG){OFF_SIG=sig;offReport();}
   // Refit when asked, and when a newly added boulder would sit off-screen.
+  // Browsing is not a pick: the whole dataset is 40 km wide, so fitting it
+  // would only tear the map away from the crag you are reading. The blocks
+  // appear around it instead. The first draw of all has to place the map.
   var focus=focusId&&BY_ID[focusId]?toB(BY_ID[focusId]):null;
-  if(fit||(focus&&!map.getBounds().contains([focus.lat,focus.lng]))){
-    map.fitBounds(all,fitOpts());}
+  if((fit&&(!browsing||!VIEW_SET))||(focus&&!map.getBounds().contains([focus.lat,focus.lng]))){
+    map.fitBounds(all,fitOpts());VIEW_SET=true;}
   // The stop numbers are known now, so the circuit list can follow the same order.
   // Search hits are drawn last: they skip whatever the circuits already show.
   drawSearch();
@@ -1795,7 +1943,7 @@ function render(fit,focusId){
 if(!isMobile()) openPanel();
 parseHash();syncG();syncC();syncR();syncT();
 // No lists in the link: carry on from the picks of the last visit, otherwise
-// from the first list.
+// from the default pick.
 if(!/[#&]l=/.test(location.hash))restorePicks();
 // A shared link that narrows something opens on the filters; everything else
 // opens on the walk.
