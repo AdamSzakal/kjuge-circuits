@@ -92,6 +92,11 @@ body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system
 #locate.wait{opacity:.6}
 .mepulse{border-radius:50%;background:#1a73e8;border:3px solid #fff;
   box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
+/* A fixed thing on the ground that is not a boulder: the sign itself, with no
+   plate behind it. The shadow is the one every other mark on the map carries,
+   so the glyph does not dissolve into the green. */
+.poi{display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));cursor:pointer}
 /* How far it is to the stop, once the app knows where you stand. */
 .dist{color:var(--my);font-weight:600}
 .myrow.near{background:var(--bg3)}
@@ -1988,6 +1993,31 @@ showTab(GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){r
 if(CIRCUITS.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
 renderLists();
 render(true);
+
+/* ---- what is on the ground and is not a boulder ----
+ * Kjugekull's own access notice says it: "There is a toilet close by the café."
+ * A walk of a hundred boulders is long enough for that to matter, so the map
+ * says where it is instead of leaving it to the notice.
+ *
+ * It is put on the map once and never taken off. It belongs to the ground and
+ * not to the circuit you picked, and the layer the circuits are drawn in is
+ * emptied on every render - so a point that must stay goes beside that layer,
+ * not into it. Its pane sits over the route line and under the stops, so it can
+ * never cover a boulder you came for.
+ *
+ * The position is the one OpenStreetMap carries for it (amenity=toilets, open
+ * around the clock, no fee): 53 m from Caféblocket, 96 m from the café itself.
+ */
+map.createPane('poiPane');
+map.getPane('poiPane').style.zIndex=610;
+var POI=[[56.073904,14.363295,'🚾','Toilet',
+  'By the café at Kjugekull, about 50 m from Caféblocket.<br>Open around the clock, no fee.']];
+POI.forEach(function(q){
+  L.marker([q[0],q[1]],{pane:'poiPane',title:q[3],
+    icon:L.divIcon({className:'poi',html:q[2],iconSize:[24,24]})})
+   .addTo(map)
+   .bindPopup('<b class="phead">'+q[3]+'</b>'+q[4],POPUP_OPTS());
+});
 
 /* ---- how many have opened this ----
  * There is no backend here, so a free counter service holds the number and the
