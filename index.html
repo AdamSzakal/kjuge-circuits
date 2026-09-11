@@ -306,6 +306,9 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 .prow.done .pmain{opacity:.5}
 .prow.done .pmain a{text-decoration:line-through}
 .done-n{color:var(--ok);font-weight:600}
+/* The day's own tally, next to the circuit's: same weight, own colour, so the
+ * two counts on the header line do not read as one. */
+.today-n{color:var(--my);font-weight:600}
 .pact .ic{width:16px;height:16px}
 /* The block link is a button, so it does not take the link colour of a row. */
 a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decoration:none}
@@ -669,18 +672,45 @@ function photoUrl(ref,big){
  * ticklist. `hideDone` is a filter, so it clears with the other filters while
  * the ticks themselves stay. */
 var TICK_KEY='kjuge.ticks', TICKS={}, hideDone=false;
+/* The day a tick was made, so the header can count today's. It is kept in a
+ * store of its own instead of inside the tick list: a cached copy of the page
+ * still writes the old list shape, and a day stamp is not worth breaking that
+ * for. A stamp lost that way costs the day's count and nothing else. */
+var TDAY_KEY='kjuge.tickdays', TDAYS={};
+function today(){
+  var d=new Date();
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
 (function(){
-  var raw;try{raw=localStorage.getItem(TICK_KEY);}catch(e){return;}
-  if(!raw)return;
-  try{JSON.parse(raw).forEach(function(id){TICKS[id]=1;});}catch(e){}
+  var raw=null,days=null;
+  try{raw=localStorage.getItem(TICK_KEY);days=localStorage.getItem(TDAY_KEY);}catch(e){return;}
+  if(raw)try{JSON.parse(raw).forEach(function(id){TICKS[id]=1;});}catch(e){}
+  if(days)try{TDAYS=JSON.parse(days)||{};}catch(e){}
 })();
 function saveTicks(){
-  try{localStorage.setItem(TICK_KEY,JSON.stringify(Object.keys(TICKS).map(Number)));}catch(e){}
+  // A day of a boulder that is no longer ticked is nobody's, so it goes too.
+  Object.keys(TDAYS).forEach(function(id){if(!TICKS[id])delete TDAYS[id];});
+  try{
+    localStorage.setItem(TICK_KEY,JSON.stringify(Object.keys(TICKS).map(Number)));
+    localStorage.setItem(TDAY_KEY,JSON.stringify(TDAYS));
+  }catch(e){}
 }
 function tickCount(){return Object.keys(TICKS).length;}
+function tickCountToday(){
+  var t=today(),n=0;
+  Object.keys(TDAYS).forEach(function(id){if(TDAYS[id]===t)n++;});
+  return n;
+}
 function toggleTick(id){
-  if(TICKS[id])delete TICKS[id];else TICKS[id]=1;
+  if(TICKS[id]){delete TICKS[id];delete TDAYS[id];}
+  else{TICKS[id]=1;TDAYS[id]=today();}
   saveTicks();
+}
+/* The end of the header line: what you have ticked today, whichever circuit it
+ * came from. A day with nothing in it yet says nothing. */
+function todayTail(){
+  var n=tickCountToday();
+  return n?' · <span class="today-n">'+n+' today</span>':'';
 }
 
 /* ---- how good is this boulder? ----
@@ -1843,7 +1873,7 @@ function render(fit,focusId){
   var nB=stops.reduce(function(a,s){return a+s.b.length;},0);
   // Browsing shows everything, so an empty map now only means the filters left
   // nothing at all.
-  if(stops.length===0){wsum.textContent='0 boulders';
+  if(stops.length===0){wsum.innerHTML='0 boulders'+todayTail();
     renderWalk();closeStop();drawSearch();renderPicked();syncHash();return;}
   var C=stops.map(function(s){return [s.lat,s.lng];});
   // The order of the walk, and where it starts. Browsing keeps the blocks as
@@ -1909,10 +1939,10 @@ function render(fit,focusId){
   var nDone=0;
   stops.forEach(function(st){st.b.forEach(function(b){if(b.id&&TICKS[b.id])nDone++;});});
   // Browsing counts blocks, not stops, and has no distance to give.
-  wsum.innerHTML=browsing?
+  wsum.innerHTML=(browsing?
     'Browsing '+nB+' boulders · '+stops.length+' blocks'+(nDone?' · <span class="done-n">'+nDone+' done</span>':''):
     esc(lbl)+nB+' boulders · '+stops.length+' stops · '+(dist/1000).toFixed(2)+' km'+
-    (nDone?' · <span class="done-n">'+nDone+' done</span>':'');
+    (nDone?' · <span class="done-n">'+nDone+' done</span>':''))+todayTail();
   renderWalk();
   // The parking is only the start point of the walk; nothing is drawn there.
   var all=line;
