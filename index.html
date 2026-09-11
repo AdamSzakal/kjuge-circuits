@@ -187,6 +187,7 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 .mini.pri{background:var(--my);border-color:var(--my);color:#fff;font-weight:600}
 .mini.wide{display:flex;width:100%;margin:8px 0 2px;min-height:40px;font-size:14px}
 .mini.danger{color:var(--danger);border-color:var(--danger-line);background:var(--danger-bg)}
+.mini[disabled]{opacity:.45;cursor:default}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;border:1.5px solid var(--line);
   background:var(--bg2);color:var(--ink);font-size:14px;cursor:pointer;user-select:none;min-height:38px;line-height:1}
@@ -255,26 +256,20 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 .note{color:var(--ink3);font-size:12px;margin-top:8px}
 .note a{color:var(--link)}
 /* ---- the walk: what the crag asks of you, then the stops in order ---- */
-/* ---- a section that folds ----
- * The same chevron as the access notice below, without its warning colours.
- * Once the walk is on the device the fold closes: the one line of the summary
- * is all the reassurance that is wanted, and the counts and the buttons stay
- * one tap under it. */
-.fold>summary{cursor:pointer;display:flex;align-items:center;gap:8px;list-style:none;min-height:26px}
-.fold>summary::-webkit-details-marker{display:none}
-.fold>summary::after{content:'';flex:none;width:7px;height:7px;margin-left:auto;
-  border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);
-  transform:translateY(-2px) rotate(45deg);transition:transform .18s}
-.fold[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
-#offState{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:4px}
-#offState.ok{color:var(--ok)}
+/* ---- the offline line ----
+ * One row: a chip that says whether the walk is on the device, and the button
+ * that brings it down. The chip is as wide as its words and the buttons keep
+ * the right edge. The counts are the chip's own tooltip, so the row stays
+ * one line. */
+.offrow{display:flex;align-items:center;gap:8px}
+#offState{margin-right:auto;font-size:12px;color:var(--ink3);gap:6px;padding:6px 10px;min-height:0;cursor:default}
+#offState.ok{color:var(--ok);border-color:var(--ok)}
 #offState .ic{width:14px;height:14px;stroke-width:2.6}
-#offClear{margin-top:8px}
 /* The access text is the crag's own, emoji and line breaks included, so it is
    printed as it was written instead of being reflowed into one paragraph. */
 .access{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:8px 12px;font-size:13px}
 .access+.access{margin-top:8px}
-/* The native triangle is dropped for the same chevron the folds above use. */
+/* The native triangle is dropped for a chevron of our own. */
 .access>summary{cursor:pointer;font-weight:700;color:var(--warn-ink);min-height:26px;
   display:flex;align-items:center;list-style:none}
 .access>summary::-webkit-details-marker{display:none}
@@ -418,12 +413,13 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
     </div>
     <div id="wbody" class="pane">
       <div class="sec" id="accessSec" hidden></div>
-      <details class="sec fold" id="offSec">
-        <summary><b>Offline</b><span id="offState"></span></summary>
-        <button class="mini wide" id="offSave">Save this walk for offline</button>
-        <div class="note" id="offNote"></div>
-        <button class="mini" id="offClear" hidden>Clear</button>
-      </details>
+      <div class="sec">
+        <div class="offrow">
+          <span class="chip" id="offState"></span>
+          <button class="mini" id="offSave">Save walk</button>
+          <button class="mini" id="offClear" hidden>Clear</button>
+        </div>
+      </div>
       <div class="sec"><div id="walkList"></div></div>
     </div>
     <div id="cbody" class="pane">
@@ -1655,11 +1651,10 @@ map.on('dragstart',function(){if(following){following=false;locBtn.classList.rem
  * to the sharpest one OpenTopoMap draws. A cap keeps a careless tap on a list
  * that spans a whole lake from pulling thousands of tiles off a free server. */
 var OFF_ZOOMS=[13,14,15,16,17], OFF_CAP=1500, LAST_BOUNDS=null;
-// The walk the offline line was last taken over, so a new walk asks again,
-// and the answer it gave, because the fold follows that and nothing else.
-var OFF_SIG=null, OFF_READY=null;
-var offSave=document.getElementById('offSave'), offNote=document.getElementById('offNote'),
-    offClear=document.getElementById('offClear'), offSec=document.getElementById('offSec'),
+// The walk the offline line was last taken over, so a new walk asks again.
+var OFF_SIG=null;
+var offSave=document.getElementById('offSave'),
+    offClear=document.getElementById('offClear'),
     offState=document.getElementById('offState'), offWaiting=false;
 /* Leaflet's own getTileUrl() takes its zoom from the map, not from the tile it
  * is handed, so it cannot address a zoom the map is not showing. Saving a walk
@@ -1728,10 +1723,8 @@ function photoKeys(){
     .then(function(k){return k.map(function(r){return r.url;});}).catch(function(){return [];});
 }
 // Counted from what is actually stored, so the line still reads true after a
-// reload, and after the browser has thrown something away. The fold moves only
-// when the answer changes: closed once the walk is on the device, open again
-// when it is not. A tap that leaves the answer alone leaves the fold where the
-// reader put it.
+// reload, and after the browser has thrown something away. The chip says the
+// answer in three words; what it is counted from is the tooltip under it.
 function offReport(){
   return walkSaved().then(function(w){
     // Pictures only reach the device through the worker, so a page opened from
@@ -1740,27 +1733,40 @@ function offReport(){
     var saved=w.want>0&&w.have>=w.want&&w.haveP>=pics;
     var fromFile=SW?'':' Photographs need the app opened from its web address, not from a file.';
     offClear.hidden=!(w.total||w.totalP);
-    offState.innerHTML=saved?icon('check')+'<span>Ready for no signal</span>':'';
-    offState.classList.toggle('ok',saved);
-    if(saved!==OFF_READY){OFF_READY=saved;offSec.open=!saved;}
+    // Nothing picked is nothing to save, so the button waits instead of
+    // answering a tap with a complaint.
+    offSave.disabled=!LAST_BOUNDS;
+    offSave.hidden=saved;
+    var state='Not saved for offline';
+    if(saved)state='Ready for no signal';
+    else if(!LAST_BOUNDS)state='Pick a circuit first';
+    else if(w.have||w.haveP)state='Part of the walk is here';
+    offChip(state,saved);
     var bits=[];
     if(saved){
       bits.push(w.want+' map tiles');
       if(pics)bits.push(pics+' photograph'+(pics===1?'':'s'));
-      offNote.textContent='This walk is on the device: '+bits.join(' and ')+
+      offState.title='This walk is on the device: '+bits.join(' and ')+
         '. It opens with no signal.'+fromFile;
       return;
     }
     if(w.have)bits.push(w.have+' of '+w.want+' map tiles');
     if(pics&&w.haveP)bits.push(w.haveP+' of '+pics+' photographs');
-    offNote.textContent=(bits.length?bits.join(' and ')+' of this walk are already here. ':'')+
-      'Save this walk while you have signal: '+w.want+' map tiles'+
-      (pics?' and '+pics+' photographs, about '+fmtMB(pics*PHOTO_MB)+' MB':'')+
+    offState.title=(bits.length?bits.join(' and ')+' of this walk are already here. ':'')+
+      (LAST_BOUNDS?'Save this walk while you have signal: '+w.want+' map tiles'+
+        (pics?' and '+pics+' photographs, about '+fmtMB(pics*PHOTO_MB)+' MB':''):
+        'Only a picked walk can be saved')+
       '. The list, the grades and your ticks already work offline.';
   });
 }
-// The walk is on the device: one word over the map, and the fold closes over
-// the counts. Photographs come after the tiles, so this waits for both.
+// The chip carries the whole state of the line, so it is written in one place.
+// A tick only goes with the good answer; the others are plain words.
+function offChip(text,ok){
+  offState.innerHTML=(ok?icon('check'):'')+'<span>'+esc(text)+'</span>';
+  offState.classList.toggle('ok',!!ok);
+}
+// The walk is on the device: the chip turns, and a toast says so once.
+// Photographs come after the tiles, so this waits for both.
 function offDone(){
   offWaiting=false;
   offReport().then(function(){toast('Saved. This walk opens with no signal.');});
@@ -1774,10 +1780,10 @@ offClear.onclick=function(){
   Promise.all([tileClear(),window.caches?caches.delete(PHOTO_CACHE):null]).then(offReport);
 };
 offSave.onclick=function(){
-  if(!LAST_BOUNDS){offNote.textContent='Pick a circuit first.';return;}
+  if(!LAST_BOUNDS)return;
   var list=tilesFor(LAST_BOUNDS.pad(0.15));
   if(list.length>OFF_CAP){
-    offNote.textContent='That is '+list.length+' tiles, too many to ask of a free map server. Pick fewer circuits, or one crag at a time.';
+    toast('That is '+list.length+' tiles, too many to ask of a free map server. Pick fewer circuits, or one crag at a time.');
     return;
   }
   offSave.disabled=true;
@@ -1791,7 +1797,7 @@ offSave.onclick=function(){
         .then(function(bl){if(bl&&bl.size)return tilePut(key,bl);});
     }).catch(function(){}).then(function(){
       done++;
-      offNote.textContent='Saving '+done+' of '+list.length+'…';
+      offChip('Saving '+done+' of '+list.length+'…');
       return step();
     });
   }
@@ -1802,7 +1808,7 @@ offSave.onclick=function(){
     var photos=walkPhotos();
     if(SW&&SW.active&&photos.length){
       var pics=photos.length/PHOTO_SIZES.length;
-      offNote.textContent='Map saved. Fetching '+pics+' photograph'+(pics===1?'':'s')+'…';
+      offChip('Fetching '+pics+' photograph'+(pics===1?'':'s')+'…');
       offWaiting=true;
       SW.active.postMessage({type:'cache-photos',urls:photos});
     }else{
@@ -1949,7 +1955,7 @@ function render(fit,focusId){
   // Only a walk can be saved for offline, so browsing offers no bounds.
   LAST_BOUNDS=(browsing||!line.length)?null:L.latLngBounds(line);
   // A different walk is a different map to save, so the offline line is taken
-  // again. Only the first answer moves the fold; after that it is the reader's.
+  // again.
   var sig=LAST_BOUNDS?LAST_BOUNDS.toBBoxString():'';
   if(sig!==OFF_SIG){OFF_SIG=sig;offReport();}
   // Refit when asked, and when a newly added boulder would sit off-screen.
