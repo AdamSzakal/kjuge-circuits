@@ -94,7 +94,12 @@ body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system
 #locate>.ic,#browse>.ic{width:20px;height:20px}
 #locate.on{background:var(--my);border-color:var(--my);color:#fff}
 #browse.on{background:#5c636d;border-color:#5c636d;color:#fff}
+/* Nothing picked: everything is loud already and there is nothing to turn down. */
+#browse:disabled{opacity:.5;cursor:default}
 #locate.wait{opacity:.6}
+/* Two blocks under one thumb: the page carries both, each under its name. */
+.csec+.csec{margin-top:14px;border-top:1px solid var(--line2);padding-top:12px}
+.chead{display:block;font-size:15px;margin:0 0 8px}
 .mepulse{border-radius:50%;background:#1a73e8;border:3px solid #fff;
   box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
 /* A fixed thing on the ground that is not a boulder: the sign itself, with no
@@ -891,48 +896,23 @@ document.getElementById('lNone').onclick=function(){
   renderLists();render(true);
 };
 
-/* ---- browse every block, from the map ----
- * Picking nothing draws the whole dataset, which is the quickest way to read
- * the block you are standing at. Getting there meant opening the sheet, the
- * Circuits tab and "None", and the way back meant finding the pick again - four
- * taps for the thing you do most often at the crag. The button under the
- * crosshair does both ends of it: it drops the pick, and a second tap brings
- * back exactly what was there.
+/* ---- how loud the rest of the map is ----
+ * The button used to drop the pick and put it back. Nothing is dropped now:
+ * the circuit and every other block are both on the map at all times, and this
+ * only says which of the two is loud. So there is no state to remember and
+ * nothing to lose - the walk never leaves the screen.
  *
- * The dropped pick is written down, because the pick itself is written down
- * too: browsing is a valid pick and it is what a reload would otherwise come
- * back to, with nothing left to say where you were. With nothing remembered -
- * a first visit spent browsing - the way back is the default pick.
+ * With nothing picked there is nothing to turn down, so the button goes quiet
+ * and the background is loud on its own.
  */
-var PREV_KEY='kjuge.prepick', browseBtn=document.getElementById('browse');
-function pickNow(){
-  var l=[],c=[];
-  DATA.forEach(function(d,i){if(listOn[i])l.push(d.title);});
-  CIRCUITS.forEach(function(x){if(x.on)c.push(x.n);});
-  return {l:l,c:c};
-}
-function setBrowse(on){
-  if(on){
-    var p=pickNow();
-    // Nothing picked is nothing worth remembering: it would strand the way back.
-    if(p.l.length||p.c.length){try{localStorage.setItem(PREV_KEY,JSON.stringify(p));}catch(e){}}
-    DATA.forEach(function(_,i){listOn[i]=false;});CIRCUITS.forEach(function(x){x.on=false;});
-  }else{
-    var raw=null,p=null;
-    try{raw=localStorage.getItem(PREV_KEY);}catch(e){}
-    if(raw)try{p=JSON.parse(raw);}catch(e){}
-    if(p&&(p.l.length||p.c.length)){
-      DATA.forEach(function(d,i){listOn[i]=p.l.indexOf(d.title)>=0;});
-      CIRCUITS.forEach(function(x){x.on=p.c.indexOf(x.n)>=0;});
-    }else{
-      DATA.forEach(function(_,i){listOn[i]=(i===DEFAULT_LIST);});
-    }
-  }
-  renderLists();render(true);
-}
-// `browsing` is the state of the last draw, so the button follows the draw and
-// not the tap: picking "None" in the sheet lights it up just the same.
-browseBtn.onclick=function(){setBrowse(!browsing);};
+var EMPH='route', EMPH_KEY='kjuge.emph', browseBtn=document.getElementById('browse');
+try{if(localStorage.getItem(EMPH_KEY)==='all')EMPH='all';}catch(e){}
+browseBtn.onclick=function(){
+  if(browsing)return;
+  EMPH=(EMPH==='all')?'route':'all';
+  try{localStorage.setItem(EMPH_KEY,EMPH);}catch(e){}
+  applyEmphasis();
+};
 
 var gradesEl=document.getElementById('grades');
 GORD.forEach(function(g){var c=document.createElement('div');c.className='chip on';c.dataset.g=g;
@@ -1324,9 +1304,10 @@ function drawSearch(fitIfUnseen){
   });
   if(fitIfUnseen&&pts.length&&!seen)map.fitBounds(pts,fitOpts({maxZoom:16}));
   searchIds.forEach(function(id){
-    // Already on the map as part of a picked circuit. Browsing has no route to
-    // hide, so there the hit is drawn on top of its block all the same.
-    if(HIT_BY_ID[id]&&!browsing)return;
+    // Already on the map as part of the picked circuit, in the circuit's own
+    // colour. The background blocks are grey and carry no + button, so a hit
+    // standing on one is still drawn.
+    if(HIT_BY_ID[id])return;
     var b=toB(BY_ID[id]);
     var dot=L.circleMarker([b.lat,b.lng],{pane:'stopPane',radius:DOT_R-3,color:'#fff',weight:3,
       fillColor:SEARCH_COL,fillOpacity:1,bubblingMouseEvents:false}).addTo(searchLayer);
@@ -1344,7 +1325,7 @@ function showBoulder(id){
   if(isMobile())closePanel();
   // The orange hit is the answer to the search, so it opens before the block
   // it stands on. Outside browsing only one of the two ever exists.
-  openStop(SEARCH_HIT[id]||HIT_BY_ID[id]);
+  openStop(SEARCH_HIT[id]||HIT_BY_ID[id]||CTX_BY_ID[id]);
 }
 gqres.onclick=function(ev){
   var row=ev.target.closest('.res');if(!row)return;
@@ -1389,7 +1370,7 @@ myListEl.onclick=function(ev){
   if(ev.target.classList.contains('del')){removeFromCircuit(id,editIdx);renderRes();renderPicked();renderLists();render(false);return;}
   // Anywhere else on the row shows the problem on the map, with its popup open.
   var b=toB(BY_ID[id]);map.setView([b.lat,b.lng],17,{animate:false});if(isMobile())closePanel();
-  openStop(HIT_BY_ID[id]);
+  openStop(HIT_BY_ID[id]||CTX_BY_ID[id]);
 };
 
 /* ---- paste ---- */
@@ -1433,11 +1414,15 @@ var sheet=document.getElementById('sheet'), sbody=document.getElementById('sbody
 var activeDot=null, activeMark=null;
 function dotLook(dot,state){
   if(!dot)return;
-  // Each dot carries the size it was drawn at: browsing draws smaller ones.
+  // Each dot carries the size it was drawn at, and a background dot goes back
+  // to the background look and not to the circuit's.
   var r=dot._r||DOT_R;
-  if(state==='hover')dot.setStyle({radius:r+4,color:'#fff',weight:3,fillOpacity:1});
+  if(state==='hover'){
+    dot.setStyle({radius:r+4,color:'#fff',weight:3,fillOpacity:1});
+    if(dot.bringToFront)dot.bringToFront();
+  }
+  else if(dot._h&&dot._h._ctx)dot.setStyle(ctxStyle(ctxLoud()));
   else dot.setStyle({radius:r,color:'#000',weight:1,fillOpacity:.9});
-  if(state==='hover')dot.bringToFront();
 }
 function clearActiveDot(){
   if(activeMark){map.removeLayer(activeMark);activeMark=null;}
@@ -1541,19 +1526,231 @@ document.addEventListener('click',function(ev){
   else toggleInTarget(id);
 });
 document.getElementById('sclose').onclick=closeSheet;
-// A tap on empty map closes the sheet; taps on a stop stop at the stop.
-map.on('click',closeSheet);
 
 var layer=L.layerGroup().addTo(map);
-// Dot size, plus a bigger invisible tap target (phones need ~44px across).
-var DOT_R=isMobile()?15:13, HIT_R=isMobile()?26:20;
+// Dot size. The tap target is no longer a circle of its own: taps are matched
+// by distance instead, so a stop is reachable from TAP_PX away whatever else
+// is drawn near it.
+var DOT_R=isMobile()?15:13, TAP_PX=isMobile()?26:20;
 // True for a real mouse; touch screens skip the hover effect.
 var canHover=window.matchMedia('(hover:hover)').matches;
 window.addEventListener('resize',function(){
   var d=isMobile()?15:13;
   // Crossing the phone/desktop line also swaps sheet for popup, so redraw.
-  if(d!==DOT_R){DOT_R=d;HIT_R=isMobile()?26:20;closeStop();render(false);}
+  if(d!==DOT_R){DOT_R=d;TAP_PX=isMobile()?26:20;closeStop();render(false);}
 });
+
+/* ---- every block, all the time ----
+ * The map used to show the picked circuit or the whole dataset, never both, so
+ * reading the block you are standing at meant throwing the walk away first.
+ * Both are drawn now and the button changes which one is loud: the circuit
+ * keeps its colour, its numbers and its line at all times, and every other
+ * block of the dataset stands behind it, faint or full.
+ *
+ * The 542 background blocks are drawn by the canvas renderer, not as SVG
+ * shapes. One canvas is one element the browser has to keep; 542 circles are
+ * 542 of them, and an older phone feels the difference on every pan. They are
+ * built once per set of filters and then only restyled, so changing the
+ * emphasis never builds anything.
+ */
+map.createPane('ctxPane');
+map.getPane('ctxPane').style.zIndex=605;
+var ctxRenderer=L.canvas({pane:'ctxPane',padding:.3});
+var ctxLayer=L.layerGroup().addTo(map);
+var CTX=[], CTX_BY_ID={}, CTX_SIG=null;
+
+// Faint behind a circuit, full when nothing is picked or the button is on.
+function ctxStyle(loud){
+  return loud?{radius:Math.max(5,DOT_R-7),fillOpacity:.85,weight:1}
+             :{radius:Math.max(3,DOT_R-10),fillOpacity:.38,weight:0};
+}
+function ctxLoud(){return EMPH==='all'||browsing;}
+function applyEmphasis(){
+  var st=ctxStyle(ctxLoud());
+  for(var i=0;i<CTX.length;i++){CTX[i]._dot.setStyle(st);CTX[i]._dot._r=st.radius;}
+  emphSync();
+}
+function emphSync(){
+  var loud=ctxLoud();
+  browseBtn.classList.toggle('on',loud);
+  browseBtn.setAttribute('aria-pressed',loud?'true':'false');
+  // With nothing picked there is nothing to turn down, so the button says so.
+  browseBtn.title=browsing?'Every block (nothing is picked)':
+    loud?'Turn the other blocks down':'Bring every block up';
+  browseBtn.disabled=!!browsing;
+}
+
+/* The background is the whole dataset, so it only changes when a filter does.
+ * The signature is what the filters say, and nothing else: the pick does not
+ * enter it, which is why picking a circuit never rebuilds these 542 dots. */
+function ctxSignature(){
+  // A tick only changes what the background shows while "hide done" is on, so
+  // otherwise it is left out: every tick would rebuild 542 dots for nothing.
+  return [hideDone?1:0,minRating,
+    GORD.filter(function(g){return gradeOn[g];}).join(','),
+    charList.filter(function(c){return charOn[c];}).join(','),
+    hideDone?tickCount():0].join('|');
+}
+function buildContext(){
+  var sig=ctxSignature();
+  if(sig===CTX_SIG)return;
+  CTX_SIG=sig;
+  ctxLayer.clearLayers();CTX=[];CTX_BY_ID={};CTX_BY_KEY={};PROJ=null;
+  var by={};
+  browseBoulders().forEach(function(b){
+    if(!boulderVisible(b))return;
+    var key=b.lat.toFixed(6)+','+b.lng.toFixed(6);
+    var s=by[key]||(by[key]={lat:b.lat,lng:b.lng,label:b.label,key:key,b:[]});
+    s.b.push(b);
+  });
+  var st=ctxStyle(ctxLoud());
+  Object.keys(by).forEach(function(k){
+    var s=by[k];
+    var dot=L.circleMarker([s.lat,s.lng],{renderer:ctxRenderer,radius:st.radius,
+      color:'#000',weight:st.weight,fillColor:BROWSE_COL,fillOpacity:st.fillOpacity,
+      interactive:false}).addTo(ctxLayer);
+    dot._r=st.radius;
+    var h=mkStop({lat:s.lat,lng:s.lng,label:s.label,key:s.key,probs:s.b,num:0,
+      col:BROWSE_COL,dot:dot});
+    CTX.push(h);CTX_BY_KEY[s.key]=h;
+    s.b.forEach(function(b){var id=b.id||ID_BY_URL[b.url];if(id)CTX_BY_ID[id]=h;});
+  });
+}
+
+/* ---- a stop, built when it is opened ----
+ * A block page is its photographs, every boulder with its buttons, and the
+ * link out. Building that for 542 blocks cost more than everything else on a
+ * redraw put together, and nearly all of it was thrown away unread. A stop now
+ * carries only what it is made of, and writes the page the first time somebody
+ * asks for it. The second ask is free. */
+function lazy(o,k,fn){
+  Object.defineProperty(o,k,{configurable:true,get:function(){
+    var v=fn();
+    Object.defineProperty(o,k,{value:v,configurable:true,writable:true});
+    return v;
+  }});
+}
+function byGrade(a,b){return GORD.indexOf(a.grade)-GORD.indexOf(b.grade);}
+function mkStop(o){
+  var h={_num:o.num||0,_title:(o.label||'').split(' · ').pop(),_key:o.key,_col:o.col,
+    _dot:o.dot,_nums:o.nums||null,_lat:o.lat,_lng:o.lng,
+    _probs:o.nums?o.probs:(o.probs||[]).slice().sort(byGrade),
+    _route:!!o.route,_ctx:!o.route&&!o.bodyFn};
+  h._si=o.bodyFn?undefined:sectAt(o.lat,o.lng);
+  h.getLatLng=function(){return L.latLng(h._lat,h._lng);};
+  // A stop is no longer a marker, so the popup is opened by hand. It is left
+  // without a `_source`: Leaflet fires events on that, and a plain stop is not
+  // something that can be fired at. `openStop` marks the dot active instead.
+  h.openPopup=function(){
+    L.popup(POPUP_OPTS()).setLatLng(h.getLatLng()).setContent(h._html).openOn(map);
+  };
+  lazy(h,'_body',o.bodyFn||function(){
+    return photoStrip(h._si)+h._probs.map(function(b,k){
+      return probRow(b,h._nums?h._nums[k]:0,true);}).join('')+blockLink(h._si);
+  });
+  lazy(h,'_html',function(){return '<b class="phead">'+esc(h._title)+'</b>'+h._body;});
+  if(o.dot)o.dot._h=h;
+  return h;
+}
+
+/* ---- what sits under a tap ----
+ * Every dot used to carry an invisible circle to catch its own taps. Where two
+ * blocks stand a few metres apart those circles lay on top of each other and
+ * the upper one took every tap: the block underneath could not be opened at
+ * all, however hard you aimed.
+ *
+ * There are no catching circles now. A tap is matched to the nearest dot
+ * within TAP_PX, and everything within CLUSTER_PX of that dot comes with it.
+ * The cluster is never drawn - it only decides what the tap opens - so two
+ * blocks under one thumb open as one page carrying both, and nothing on the
+ * map is out of reach. A crowd is a different problem: there the tap zooms in,
+ * which is the only thing that can really separate them.
+ */
+var CLUSTER_PX=14, PROJ=null, ROUTE=[], CTX_BY_KEY={};
+function projOf(list){
+  var out=[];
+  for(var i=0;i<list.length;i++){
+    var p=map.latLngToContainerPoint([list[i]._lat,list[i]._lng]);
+    out.push({h:list[i],x:p.x,y:p.y});
+  }
+  return out;
+}
+function proj(){
+  if(!PROJ)PROJ={r:projOf(ROUTE),c:projOf(CTX)};
+  return PROJ;
+}
+map.on('move zoom resize',function(){PROJ=null;});
+function nearestIn(arr,pt,max){
+  var best=null,bd=max*max;
+  for(var i=0;i<arr.length;i++){
+    var dx=arr[i].x-pt.x,dy=arr[i].y-pt.y,d=dx*dx+dy*dy;
+    if(d<=bd){bd=d;best=arr[i];best.d2=d;}
+  }
+  return best;
+}
+/* The circuit is the loud thing on the map and its dots are the big ones, so a
+ * tap leans towards it - but only leans: a background block right under the
+ * finger still beats a circuit stop half a thumb away.
+ *
+ * Every block of the dataset is drawn behind the circuit, so a circuit stop is
+ * on the map twice. The keys are the same, and the circuit's copy is read
+ * first, so the page is never the same block twice over. */
+var ROUTE_BIAS=10;
+function under(pt){
+  var P=proj(), br=nearestIn(P.r,pt,TAP_PX), bc=nearestIn(P.c,pt,TAP_PX);
+  var best=(br&&bc)?(Math.sqrt(br.d2)<=Math.sqrt(bc.d2)+ROUTE_BIAS?br:bc):(br||bc);
+  if(!best)return null;
+  var near=[],seen={},r=CLUSTER_PX*CLUSTER_PX;
+  [P.r,P.c].forEach(function(arr){
+    for(var i=0;i<arr.length;i++){
+      var h=arr[i].h;
+      if(seen[h._key])continue;
+      var dx=arr[i].x-best.x,dy=arr[i].y-best.y;
+      if(dx*dx+dy*dy<=r){seen[h._key]=1;near.push(h);}
+    }
+  });
+  return near.length?near:[best.h];
+}
+function mkCluster(list){
+  var lat=0,lng=0;
+  list.forEach(function(x){lat+=x._lat;lng+=x._lng;});
+  return mkStop({lat:lat/list.length,lng:lng/list.length,
+    label:list.length+' blocks here',
+    key:list.map(function(x){return x._key;}).join('|'),
+    col:list[0]._col,dot:list[0]._dot,
+    bodyFn:function(){return list.map(function(x){
+      return '<div class="csec"><b class="chead">'+
+        (x._num?x._num+'. ':'')+esc(x._title)+'</b>'+x._body+'</div>';
+    }).join('');}});
+}
+// A key survives a redraw; the object it named does not. Cluster keys are the
+// members' keys joined, so a cluster comes back too.
+function stopByKey(k){
+  if(!k)return null;
+  if(k.indexOf('|')<0)return HIT_AT[k]||CTX_BY_KEY[k]||null;
+  var parts=[];
+  k.split('|').forEach(function(one){var h=stopByKey(one);if(h)parts.push(h);});
+  return !parts.length?null:parts.length===1?parts[0]:mkCluster(parts);
+}
+map.on('click',function(e){
+  var near=under(e.containerPoint);
+  if(!near){closeSheet();return;}
+  // A handful under the thumb is a page worth reading. A crowd is not, and
+  // while there is zoom left the map can still pull a crowd apart.
+  if(near.length>5&&map.getZoom()<18){map.setView(e.latlng,map.getZoom()+1);return;}
+  openStop(near.length===1?near[0]:mkCluster(near));
+});
+if(canHover){
+  var hoverH=null;
+  map.on('mousemove',function(e){
+    var near=under(e.containerPoint), h=near?near[0]:null;
+    if(h===hoverH)return;
+    if(hoverH&&hoverH._dot!==activeDot)dotLook(hoverH._dot,'idle');
+    hoverH=h;
+    if(h&&h._dot!==activeDot)dotLook(h._dot,'hover');
+    map.getContainer().style.cursor=h?'pointer':'';
+  });
+}
 /* ---- the walk, written out ----
  * The same stops the map draws, in the same order, so a climber can read the
  * day before walking it. A tap on a line opens that stop on the map. */
@@ -1876,7 +2073,7 @@ offReport();
 walkList.onclick=function(ev){
   var row=ev.target.closest('.myrow');
   if(!row)return;
-  var h=HIT_AT[row.dataset.k];
+  var h=stopByKey(row.dataset.k);
   if(!h)return;
   map.setView(h.getLatLng(),17,{animate:false});
   if(isMobile())closePanel();
@@ -1895,7 +2092,7 @@ function render(fit,focusId){
   var reopen=openKey;
   layer.clearLayers();
   // The dots are drawn again below, so the old active one is gone.
-  PROBNUM={};HIT_BY_ID={};HIT_AT={};WALK=[];clearActiveDot();
+  PROBNUM={};HIT_BY_ID={};HIT_AT={};WALK=[];ROUTE=[];PROJ=null;clearActiveDot();
   updateFSum();updateCSum();
   var sel=[];DATA.forEach(function(_,i){if(listOn[i])sel.push(i);});
   var onC=[];CIRCUITS.forEach(function(c,i){if(c.on&&c.ids.length)onC.push(i);});
@@ -1904,16 +2101,14 @@ function render(fit,focusId){
    * circuit built out of what it shows. Nobody picked an order, so browsing
    * draws no walking route: only the blocks, in a colour of their own. */
   browsing=!sel.length&&!onC.length;
-  browseBtn.classList.toggle('on',browsing);
-  browseBtn.setAttribute('aria-pressed',browsing?'true':'false');
-  browseBtn.title=browsing?'Back to the circuit you picked':'Show every block';
-  var mine=(browsing?browseBoulders():mineBoulders()).filter(boulderVisible);
+  // The whole dataset is drawn behind the pick whatever the pick is, so the
+  // circuit only ever has to build its own stops - never 542 of them.
+  buildContext();applyEmphasis();
+  var mine=mineBoulders().filter(boulderVisible);
   // one list or one circuit keeps its own colour; a mix is drawn in red.
   var col=browsing?BROWSE_COL:
     (!sel.length&&onC.length===1)?circuitColor(onC[0]):(sel.length===1&&!mine.length?DATA[sel[0]].color:'#e6194B');
-  // Browsing puts hundreds of blocks on the screen at once, so their dots are
-  // smaller and their tap areas do not swallow each other.
-  var dotR=browsing?DOT_R-7:DOT_R, hitR=browsing?HIT_R-8:HIT_R;
+  var dotR=DOT_R;
   var stopsMap={}, parkings=[];
   sel.forEach(function(li){
     var d=DATA[li];if(d.parking)parkings.push(d.parking);
@@ -1935,10 +2130,19 @@ function render(fit,focusId){
   });
   var stops=Object.keys(stopsMap).map(function(k){return stopsMap[k];});
   var nB=stops.reduce(function(a,s){return a+s.b.length;},0);
-  // Browsing shows everything, so an empty map now only means the filters left
-  // nothing at all.
-  if(stops.length===0){wsum.innerHTML='0 boulders'+todayTail();
-    renderWalk();closeStop();drawSearch();renderPicked();syncHash();return;}
+  /* Nothing of the pick to draw. While browsing that is the ordinary state -
+   * the background is the map - so the header counts the background instead.
+   * Otherwise the filters have emptied the pick and it really is nothing. */
+  if(stops.length===0){
+    var cb=0,cd=0;
+    CTX.forEach(function(h){cb+=h._probs.length;
+      h._probs.forEach(function(b){if(b.id&&TICKS[b.id])cd++;});});
+    wsum.innerHTML=(browsing?
+      'Browsing '+cb+' boulders · '+CTX.length+' blocks'+(cd?' · <span class="done-n">'+cd+' done</span>':''):
+      '0 boulders')+todayTail();
+    renderWalk();drawSearch();renderPicked();syncHash();
+    var rh=stopByKey(reopen);if(rh)openStop(rh,true);else closeStop();
+    return;}
   var C=stops.map(function(s){return [s.lat,s.lng];});
   // The order of the walk, and where it starts. Browsing keeps the blocks as
   // they came: there is no walk to route.
@@ -1963,8 +2167,6 @@ function render(fit,focusId){
     // The stop reads as a block page: its photographs, then every boulder of
     // the stop with the two buttons, then the block on 27crags.
     var si=sectAt(s.lat,s.lng);
-    var body=photoStrip(si)+probs.map(function(b,k){return probRow(b,nums[k],true);}).join('')+blockLink(si);
-    var html='<b class="phead">'+esc(sector)+'</b>'+body;
     var key=pt[0].toFixed(6)+','+pt[1].toFixed(6);
     // One line of the walk: where it is, how much is there, and how hard.
     var gi=probs.map(function(b){return GORD.indexOf(b.grade);}).filter(function(x){return x>=0;}), gr='';
@@ -1975,28 +2177,17 @@ function render(fit,focusId){
     var nd=probs.filter(function(b){return b.id&&TICKS[b.id];}).length;
     // The written walk is the route, so browsing writes none.
     if(!browsing)WALK.push({n:pos+1,key:key,lat:pt[0],lng:pt[1],sector:sector,nb:probs.length,gr:gr,si:si,done:nd});
-    // Visible dot: only decoration, so it never steals a tap from the hit area.
-    var dot=L.circleMarker(pt,{pane:'stopPane',radius:dotR,color:'#000',weight:1,fillColor:col,fillOpacity:.9,interactive:false}).addTo(layer);
+    // The dot is decoration and nothing else: taps are matched by distance, so
+    // it carries no handler, no tap circle and no popup of its own.
+    var dot=L.circleMarker(pt,{pane:'stopPane',radius:dotR,color:'#000',weight:1,
+      fillColor:col,fillOpacity:.9,interactive:false}).addTo(layer);
     dot._r=dotR;
-    // Invisible, larger circle that catches clicks and taps around the dot.
-    // bubblingMouseEvents:false keeps the tap on the stop: otherwise it also
-    // counts as a tap on the map, which closes the sheet again at once.
-    var hit=L.circleMarker(pt,{pane:'stopPane',radius:hitR,stroke:false,fillColor:col,fillOpacity:.001,bubblingMouseEvents:false}).addTo(layer);
-    hit._dot=dot;hit._num=browsing?0:pos+1;hit._col=col;hit._title=sector;hit._body=body;hit._key=key;
-    HIT_AT[key]=hit;
-    if(canHover){
-      // Grow the dot while the pointer is over the hit area. The open stop keeps
-      // its active look, so hovering it changes nothing.
-      hit.on('mouseover',function(){if(dot!==activeDot)dotLook(dot,'hover');});
-      hit.on('mouseout',function(){if(dot!==activeDot)dotLook(dot,'idle');});
-    }
+    var hit=mkStop({lat:pt[0],lng:pt[1],label:s.label,key:key,probs:probs,nums:nums,
+      num:pos+1,col:col,dot:dot,route:true});
+    HIT_AT[key]=hit;ROUTE.push(hit);
     probs.forEach(function(b){var bid=b.id||ID_BY_URL[b.url];if(bid)HIT_BY_ID[bid]=hit;});
-    // Stop numbers belong to a route, so browsing leaves them off.
-    if(!browsing)hit.bindTooltip(String(pos+1),{permanent:true,direction:'center',className:'num'});
-    // A phone shows the stop in the bottom sheet; a big screen in a popup.
-    hit._html=html;
-    if(isMobile())hit.on('click',function(){openStop(hit);});
-    else hit.bindPopup(html,POPUP_OPTS());
+    // The number belongs to the route, and the tooltip rides on the dot now.
+    dot.bindTooltip(String(pos+1),{permanent:true,direction:'center',className:'num'});
   });
   if(!browsing&&line.length>1)L.polyline(line,{pane:'routePane',color:col,weight:4,opacity:.6,interactive:false}).addTo(layer);
   var lbl=(!sel.length&&onC.length===1?circuitName(onC[0])+' · ':'');
@@ -2030,7 +2221,7 @@ function render(fit,focusId){
   syncHash();
   // The stop that was open is drawn again, so its buttons and its list follow
   // whatever the tap just changed.
-  if(reopen){var h=HIT_AT[reopen];if(h)openStop(h,true);else closeStop();}
+  if(reopen){var h=stopByKey(reopen);if(h)openStop(h,true);else closeStop();}
 }
 // A big screen has room for the list, so it starts unfolded. A phone starts
 // on the map, with the header of the sheet along the bottom edge.
