@@ -84,11 +84,16 @@ body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system
 .rval{color:var(--ink3);font-size:12px}
 /* Where you are. The button sits opposite the zoom control, clear of the
    sheet along the bottom edge. */
-#locate{position:absolute;z-index:1200;right:10px;top:calc(84px + env(safe-area-inset-top));
+#locate,#browse{position:absolute;z-index:1200;right:10px;
   width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--bg);color:var(--ink);
   box-shadow:0 1px 5px rgba(0,0,0,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
-#locate>.ic{width:20px;height:20px}
+#locate{top:calc(84px + env(safe-area-inset-top))}
+/* Every block of the dataset, under the crosshair. On, it takes the same grey
+   the blocks are drawn in, so the button and the map say the same thing. */
+#browse{top:calc(132px + env(safe-area-inset-top))}
+#locate>.ic,#browse>.ic{width:20px;height:20px}
 #locate.on{background:var(--my);border-color:var(--my);color:#fff}
+#browse.on{background:#5c636d;border-color:#5c636d;color:#fff}
 #locate.wait{opacity:.6}
 .mepulse{border-radius:50%;background:#1a73e8;border:3px solid #fff;
   box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
@@ -344,6 +349,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
      way in: a tap on the grab bar folds the body out and back. The editor is
      still parked off-screen until it is opened. */
   #locate{top:calc(10px + env(safe-area-inset-top))}
+  #browse{top:calc(58px + env(safe-area-inset-top))}
   #toast{left:10px}
   #panel,#editor{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;max-height:88vh;
     border-radius:22px 22px 0 0;display:flex}
@@ -465,6 +471,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
 </div>
 <div id="map"></div>
 <button id="locate" aria-label="Show where I am" title="Show where I am"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4.2"/><path d="M10 1.6v2.6M10 15.8v2.6M18.4 10h-2.6M4.2 10H1.6"/></svg></button>
+<button id="browse" aria-label="Show every block" title="Show every block" aria-pressed="false"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true" stroke-width="1.7"><circle cx="5.6" cy="5.6" r="2.6"/><circle cx="14.4" cy="6.4" r="2.6"/><circle cx="5" cy="14.4" r="2.6"/><circle cx="14" cy="14.2" r="2.6"/></svg></button>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="sheet" hidden><div id="shead"><b id="stitle"></b><button id="sclose" aria-label="Close"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button></div><div id="sbody"></div></div>
 <div id="lb" hidden><button id="lbClose" aria-label="Close picture"><svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button><img id="lbImg" alt=""><div id="lbCap"></div></div>
@@ -883,6 +890,49 @@ document.getElementById('lNone').onclick=function(){
   DATA.forEach(function(_,i){listOn[i]=false;});CIRCUITS.forEach(function(c){c.on=false;});
   renderLists();render(true);
 };
+
+/* ---- browse every block, from the map ----
+ * Picking nothing draws the whole dataset, which is the quickest way to read
+ * the block you are standing at. Getting there meant opening the sheet, the
+ * Circuits tab and "None", and the way back meant finding the pick again - four
+ * taps for the thing you do most often at the crag. The button under the
+ * crosshair does both ends of it: it drops the pick, and a second tap brings
+ * back exactly what was there.
+ *
+ * The dropped pick is written down, because the pick itself is written down
+ * too: browsing is a valid pick and it is what a reload would otherwise come
+ * back to, with nothing left to say where you were. With nothing remembered -
+ * a first visit spent browsing - the way back is the default pick.
+ */
+var PREV_KEY='kjuge.prepick', browseBtn=document.getElementById('browse');
+function pickNow(){
+  var l=[],c=[];
+  DATA.forEach(function(d,i){if(listOn[i])l.push(d.title);});
+  CIRCUITS.forEach(function(x){if(x.on)c.push(x.n);});
+  return {l:l,c:c};
+}
+function setBrowse(on){
+  if(on){
+    var p=pickNow();
+    // Nothing picked is nothing worth remembering: it would strand the way back.
+    if(p.l.length||p.c.length){try{localStorage.setItem(PREV_KEY,JSON.stringify(p));}catch(e){}}
+    DATA.forEach(function(_,i){listOn[i]=false;});CIRCUITS.forEach(function(x){x.on=false;});
+  }else{
+    var raw=null,p=null;
+    try{raw=localStorage.getItem(PREV_KEY);}catch(e){}
+    if(raw)try{p=JSON.parse(raw);}catch(e){}
+    if(p&&(p.l.length||p.c.length)){
+      DATA.forEach(function(d,i){listOn[i]=p.l.indexOf(d.title)>=0;});
+      CIRCUITS.forEach(function(x){x.on=p.c.indexOf(x.n)>=0;});
+    }else{
+      DATA.forEach(function(_,i){listOn[i]=(i===DEFAULT_LIST);});
+    }
+  }
+  renderLists();render(true);
+}
+// `browsing` is the state of the last draw, so the button follows the draw and
+// not the tap: picking "None" in the sheet lights it up just the same.
+browseBtn.onclick=function(){setBrowse(!browsing);};
 
 var gradesEl=document.getElementById('grades');
 GORD.forEach(function(g){var c=document.createElement('div');c.className='chip on';c.dataset.g=g;
@@ -1854,6 +1904,9 @@ function render(fit,focusId){
    * circuit built out of what it shows. Nobody picked an order, so browsing
    * draws no walking route: only the blocks, in a colour of their own. */
   browsing=!sel.length&&!onC.length;
+  browseBtn.classList.toggle('on',browsing);
+  browseBtn.setAttribute('aria-pressed',browsing?'true':'false');
+  browseBtn.title=browsing?'Back to the circuit you picked':'Show every block';
   var mine=(browsing?browseBoulders():mineBoulders()).filter(boulderVisible);
   // one list or one circuit keeps its own colour; a mix is drawn in red.
   var col=browsing?BROWSE_COL:
