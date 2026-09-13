@@ -1481,7 +1481,50 @@ function setActiveDot(hit){
 // under the same key. Adding or ticking a boulder redraws the map, and the two
 // together put the same stop back with its new contents.
 var openKey=null, HIT_AT={};
-function closeSheet(){sheet.hidden=true;sbody.innerHTML='';stitle.textContent='';openKey=null;clearActiveDot();}
+/* ---- the map keeps its place under the sheet ----
+ * The sheet covers the lower half of the screen, so a stop tapped low down
+ * went behind it the moment it opened and the map appeared to jump. The map
+ * moves with the sheet instead: the stop keeps the place it had, measured
+ * against the part of the map you can still see. Closing gives back exactly
+ * the same shift, so the map ends where it began.
+ *
+ * The lift is remembered rather than worked out twice, because the sheet may
+ * have changed height in between - a step along the walk swaps its contents -
+ * and a shift undone by a different amount would leave the map adrift. */
+var SHEET_LIFT=0;
+// How much of the map the sheet is standing over.
+function sheetCover(){
+  if(sheet.hidden)return 0;
+  var m=map.getContainer().getBoundingClientRect(), r=sheet.getBoundingClientRect();
+  return Math.max(0,Math.min(m.bottom,r.bottom)-Math.max(m.top,r.top));
+}
+// Same fraction of what is left to see as it had of the whole.
+function liftForSheet(h){
+  var cover=sheetCover(), H=map.getSize().y;
+  if(!cover||!H||cover>=H)return;
+  var y=map.latLngToContainerPoint(h.getLatLng()).y;
+  // A stop that is not on the screen has no place worth keeping. It is brought
+  // into the middle of what the sheet leaves showing instead, and there is then
+  // nothing for the closing to give back.
+  if(y<0||y>H){panToVisible(h.getLatLng());return;}
+  var lift=Math.round(y-y*(H-cover)/H);
+  if(!lift)return;
+  SHEET_LIFT=lift;
+  map.panBy([0,lift],{animate:true,duration:.25});
+}
+// Centre on a point in the part of the map the sheet leaves showing.
+function panToVisible(latlng){
+  var cover=sheetCover(), z=map.getZoom();
+  if(!cover){map.panTo(latlng);return;}
+  var pt=map.project(latlng,z);
+  pt.y+=cover/2;
+  map.panTo(map.unproject(pt,z));
+}
+function closeSheet(){
+  var lift=SHEET_LIFT;SHEET_LIFT=0;
+  sheet.hidden=true;sbody.innerHTML='';stitle.textContent='';openKey=null;clearActiveDot();
+  if(lift)map.panBy([0,-lift],{animate:true,duration:.25});
+}
 
 /* ---- along the walk, from the stop itself ----
  * Reading a stop and then hunting the next dot on the map is the wrong way
@@ -1504,8 +1547,8 @@ function stepStop(d){
   var i=walkAt(openKey);if(i<0)return;
   var w=WALK[i+d];if(!w)return;
   var h=stopByKey(w.key);if(!h)return;
-  // The map follows, or the next stop is read while the map still shows the last.
-  map.panTo([w.lat,w.lng]);
+  // The map follows, into the part of itself the sheet leaves showing.
+  panToVisible(L.latLng(w.lat,w.lng));
   openStop(h);
 }
 sprev.onclick=function(){stepStop(-1);};
@@ -1515,9 +1558,12 @@ function closeStop(){map.closePopup();closeSheet();}
 function openStop(hit,keepScroll){
   if(!hit)return;
   if(isMobile()){map.closePopup();
-    var top=keepScroll?sheet.scrollTop:0;
+    // Only the opening lifts the map. A stop tapped while the sheet is already
+    // up was tapped in open view, so it is where it should be already.
+    var wasShut=sheet.hidden, top=keepScroll?sheet.scrollTop:0;
     stitle.textContent=(hit._num?hit._num+'. ':'')+(hit._title||'');
-    sbody.innerHTML=hit._body||'';sheet.hidden=false;sheet.scrollTop=top;}
+    sbody.innerHTML=hit._body||'';sheet.hidden=false;sheet.scrollTop=top;
+    if(wasShut)liftForSheet(hit);}
   else{closeSheet();hit.openPopup();}
   setActiveDot(hit);
   openKey=hit._key||null;
