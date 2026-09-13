@@ -14,8 +14,9 @@ Pick a circuit, get the shortest walk through it, and take the whole thing to th
 [![Build step](https://img.shields.io/badge/build_step-none-22c55e?style=flat-square)](#why-one-file)
 [![npm packages](https://img.shields.io/badge/npm_packages-0-22c55e?style=flat-square)](#why-one-file)
 [![PWA](https://img.shields.io/badge/PWA-installable-8b5cf6?style=flat-square)](#take-it-to-the-crag)
+[![License](https://img.shields.io/badge/license-MIT-64748b?style=flat-square)](LICENSE)
 
-<img src="docs/demo.gif" width="280" alt="The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, and the grade filter">
+<img src="docs/demo.gif" width="280" alt="The sheet at rest, the walk, a block page with its photographs, a tick, the topo, two circuits merged, every block of the dataset, and the grade filter">
 
 <sub>Rebuilt from the live app by <a href="record_demo.js"><code>record_demo.js</code></a> — run it whenever the interface changes.</sub>
 
@@ -221,3 +222,9 @@ The eight style lists come from the "Problem styles" page of the printed **Kjuge
 *Affonsos Darlings* was proposed by **Affonso**.
 Boulder data © **27crags / thetopo** and the respective contributors.
 Map tiles © **[OpenTopoMap](https://opentopomap.org)** and **OpenStreetMap** contributors (CC-BY-SA).
+
+## Licence
+
+The code is **[MIT](LICENSE)** — take it and do what you like with it.
+
+The data is not. The lists belong to their authors and the boulder data to 27crags and its contributors, so the licence covers `index.html`, the build and scrape scripts, the service worker, the manifest and the icons, and nothing else. [`LICENSE`](LICENSE) says which is which.

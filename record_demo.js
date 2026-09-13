@@ -151,6 +151,12 @@ function connect(url) {
   await sleep(2600);
   await shoot('merged', 3);
 
+  await run("document.getElementById('browse').click()");                   // every block, and back
+  await sleep(2600);
+  await shoot('browse', 3);
+  await run("document.getElementById('browse').click()");
+  await sleep(2400);
+
   await run("document.getElementById('grab').click()");                    // narrow it down
   await sleep(400);
   await run("document.getElementById('tabFilters').click()");
