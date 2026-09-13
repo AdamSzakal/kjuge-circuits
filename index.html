@@ -1839,11 +1839,20 @@ function zoomToSplit(list){
     var d=Math.sqrt((P[i].x-P[j].x)*(P[i].x-P[j].x)+(P[i].y-P[j].y)*(P[i].y-P[j].y));
     if(d<min)min=d;
   }
-  var want=Math.max(40,DOT_R*2+10);
+  /* Far enough is the moment the dots stop covering each other, plus a hair -
+   * not a comfortable gap. Asking for more than that is what sent a tight
+   * group four times further in than it needed to go. */
+  var want=DOT_R*2+4;
   if(min>=want)return map.getZoom();
-  // Two blocks on the same spot can never come apart; ask for everything.
-  var steps=min<=0.01?99:Math.ceil(Math.log(want/min)/Math.LN2);
-  return Math.min(map.getMaxZoom(),map.getZoom()+steps);
+  /* A zoom level is a doubling, so the levels wanted are the log of how much
+   * further apart they have to be. Taking the whole number above that rounded
+   * the gap up to double what was asked for, on top of the gap being too big
+   * already; the nearest whole level lands on the wanted distance instead.
+   *
+   * Never less than one level, though. The nearest can be the level the map is
+   * on, and a tap that moves nothing would leave the group as it found it. */
+  var exact=min<=0.01?99:Math.log(want/min)/Math.LN2;
+  return Math.min(map.getMaxZoom(),Math.max(map.getZoom()+1,Math.round(map.getZoom()+exact)));
 }
 function midOf(list){
   var la=0,lo=0;
