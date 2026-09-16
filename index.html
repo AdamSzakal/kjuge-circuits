@@ -243,6 +243,9 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 .listrow .edit{flex:none;background:none;border:none;color:#666;font-size:15px;cursor:pointer;padding:4px 6px;min-height:32px;
   display:flex;align-items:center;justify-content:center;line-height:1}
 .listrow.editing{border-style:dashed;border-color:var(--dot,var(--my))}
+/* The rows of the circuit picker are targets, not switches, so the box is
+   always filled with the circuit colour and carries a plus. */
+#fAddPick .listrow .box{background:var(--dot);border-color:var(--dot)}
 .lgroup{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);margin:10px 0 2px}
 /* The search sits above the tabs and reaches every boulder, picked or not. */
 #gqres{margin-top:2px}
@@ -489,6 +492,11 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
       <div class="sec"><div class="hdr"><b>Done</b><button class="mini" id="tClear" hidden>Clear all</button></div>
         <div class="chips" id="doneChips"></div>
         <div class="note" id="tNote"></div></div>
+      <!-- The filters say which boulders you want today; this keeps that answer. -->
+      <div class="sec">
+        <button class="mini pri wide" id="fAdd"></button>
+        <div id="fAddPick" hidden></div>
+      </div>
     </div>
     <div class="sec"><div class="note">Lists by <b>Carl Nilsask</b> · <a href="https://drive.google.com/file/d/1_B4msOiupGdst2TktklMcE4gQHJrjmW2/view?usp=sharing" target="_blank" rel="noopener">original PDF</a>. Boulder data from <a href="https://27crags.com" target="_blank" rel="noopener">27crags</a>.<span id="visits" hidden title="One for each browser, counted the first time it opens the page."></span></div></div>
   </div>
@@ -1054,7 +1062,73 @@ function updateFSum(){
   fsum.textContent=narrowed?bits.join(' · '):'Filters narrow what the picked circuits show.';
   fbadge.hidden=!narrowed;
   fReset.hidden=!narrowed;
+  updateFAdd();
 }
+
+/* ---- turning what the filters show into a circuit ----
+ * Narrowing down to the boulders you want is most of the work of planning a
+ * day, and it used to be thrown away as soon as you moved a chip. The button
+ * at the foot of the filters keeps it: it puts the set that is on the map
+ * right now into a circuit of yours.
+ *
+ * "On the map right now" is read the same way render() reads it, so the
+ * button and the map can never disagree: a pick is the lists and the circuits
+ * you chose, and no pick at all is the whole dataset drawn behind them. */
+var fAdd=document.getElementById('fAdd'), fAddPick=document.getElementById('fAddPick');
+function shownIds(){
+  var out=[],seen={},picked=false;
+  function take(b){
+    // List boulders carry an id only where their page is in the index.
+    var id=b.id||ID_BY_URL[b.url];
+    if(id&&BY_ID[id]&&!seen[id]){seen[id]=1;out.push(id);}
+  }
+  DATA.forEach(function(d,i){
+    if(!listOn[i])return;
+    picked=true;
+    d.markers.forEach(function(m){m.b.forEach(function(b){if(boulderVisible(b))take(b);});});
+  });
+  CIRCUITS.forEach(function(c){if(c.on&&c.ids.length)picked=true;});
+  mineBoulders().filter(boulderVisible).forEach(take);
+  if(!picked)browseBoulders().filter(boulderVisible).forEach(take);
+  return out;
+}
+// The count is the whole point of the button, so it is part of the word.
+function updateFAdd(){
+  var n=shownIds().length;
+  fAdd.disabled=!n;
+  fAdd.textContent=n?'+ Add these '+n+' to a circuit':'Nothing to add';
+  if(!n)closeFAddPick();
+}
+function closeFAddPick(){fAddPick.hidden=true;fAddPick.innerHTML='';fAdd.hidden=false;}
+// "A circuit" means any of yours, or one that does not exist yet.
+function openFAddPick(){
+  var h='<div class="lgroup">Add these '+shownIds().length+' to</div>';
+  h+=CIRCUITS.map(function(c,i){
+    return '<div class="listrow" data-i="'+i+'" style="--dot:'+circuitColor(i)+'">'+
+      '<span class="box">'+icon('plus')+'</span><span class="tt">'+esc(circuitName(i))+'</span>'+
+      '<span class="km">'+c.ids.length+'</span></div>';
+  }).join('');
+  h+='<div class="listrow" data-i="-1" style="--dot:'+circuitColor(CIRCUITS.length)+'">'+
+    '<span class="box">'+icon('plus')+'</span><span class="tt">New circuit</span></div>';
+  h+='<button class="mini wide" id="fAddCancel">Cancel</button>';
+  fAddPick.innerHTML=h;fAddPick.hidden=false;fAdd.hidden=true;
+}
+fAdd.onclick=openFAddPick;
+fAddPick.onclick=function(ev){
+  if(ev.target.id==='fAddCancel'){closeFAddPick();return;}
+  var row=ev.target.closest('.listrow');if(!row)return;
+  var i=+row.dataset.i, fresh=i<0, ids=shownIds();
+  if(fresh)i=newCircuit('');
+  // A circuit you just filled but cannot see would read as a fault.
+  CIRCUITS[i].on=true;
+  var added=0;ids.forEach(function(id){if(addToCircuit(id,i))added++;});
+  closeFAddPick();
+  // A new circuit still wants a name, so it opens in the editor.
+  if(fresh)openEditor(i);
+  renderLists();render(true);
+  toast(added?added+' boulder'+(added===1?'':'s')+' added to '+circuitName(i):
+    'All '+ids.length+' are in '+circuitName(i)+' already');
+};
 
 /* ---- custom circuits: many named circuits, each with its own colour ---- */
 var PAL=['#4363d8','#f58231','#911eb4','#008080','#9A6324','#800000','#3cb44b'];
