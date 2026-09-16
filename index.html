@@ -246,6 +246,7 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 /* The rows of the circuit picker are targets, not switches, so the box is
    always filled with the circuit colour and carries a plus. */
 #fAddPick .listrow .box{background:var(--dot);border-color:var(--dot)}
+#fAddPick .listrow.full{opacity:.45}
 /* Five chip rows do not fit a phone at once, so every filter is a fold. The
    header is the handle; the chevron turns over, and a dot beside the word says
    the section is narrowing something while it is shut. */
@@ -879,6 +880,7 @@ document.getElementById('pclose').onclick=togglePanel;
 document.getElementById('backdrop').onclick=closePanel;
 
 /* ---- shareable state in URL hash ---- */
+var TRIMMED=0;          // shared circuits that were longer than the ceiling
 // "~" and "!" separate the fields, so they never survive inside a name.
 function encParam(s){return encodeURIComponent(s).replace(/~/g,'%7E').replace(/!/g,'%21');}
 function decParam(s){try{return decodeURIComponent(s);}catch(e){return s;}}
@@ -918,6 +920,9 @@ function parseHash(){
       if(f.length>=3){on=f[0]!=='0';nm=decParam(f[1]);ids=f[2];}
       else if(p.xn!==undefined){nm=decParam(p.xn);on=p.xo!=='0';}   // links of the first version
       var list=ids.split('.').filter(Boolean).map(function(s){return parseInt(s,36);}).filter(function(id){return BY_ID[id];});
+      // A link made before the ceiling existed can carry more than it. Keep
+      // the front of the circuit and say so, rather than drop it quietly.
+      if(list.length>MAX_IDS){list=list.slice(0,MAX_IDS);TRIMMED++;}
       if(list.length)CIRCUITS.push({n:nm,ids:list,on:on});
     });
   }
@@ -1194,9 +1199,9 @@ function closeFAddPick(){fAddPick.hidden=true;fAddPick.innerHTML='';fAdd.hidden=
 function openFAddPick(){
   var h='<div class="lgroup">Add these '+shownIds().length+' to</div>';
   h+=CIRCUITS.map(function(c,i){
-    return '<div class="listrow" data-i="'+i+'" style="--dot:'+circuitColor(i)+'">'+
+    return '<div class="listrow'+(circuitFull(i)?' full':'')+'" data-i="'+i+'" style="--dot:'+circuitColor(i)+'">'+
       '<span class="box">'+icon('plus')+'</span><span class="tt">'+esc(circuitName(i))+'</span>'+
-      '<span class="km">'+c.ids.length+'</span></div>';
+      '<span class="km">'+c.ids.length+' of '+MAX_IDS+'</span></div>';
   }).join('');
   h+='<div class="listrow" data-i="-1" style="--dot:'+circuitColor(CIRCUITS.length)+'">'+
     '<span class="box">'+icon('plus')+'</span><span class="tt">New circuit</span></div>';
@@ -1208,16 +1213,25 @@ fAddPick.onclick=function(ev){
   if(ev.target.id==='fAddCancel'){closeFAddPick();return;}
   var row=ev.target.closest('.listrow');if(!row)return;
   var i=+row.dataset.i, fresh=i<0, ids=shownIds();
+  if(!fresh&&circuitFull(i)){fullToast(i);return;}
   if(fresh)i=newCircuit('');
   // A circuit you just filled but cannot see would read as a fault.
   CIRCUITS[i].on=true;
-  var added=0;ids.forEach(function(id){if(addToCircuit(id,i))added++;});
+  var added=0, dup=0;
+  ids.forEach(function(id){
+    if(CIRCUITS[i].ids.indexOf(id)>=0)dup++;
+    else if(addToCircuit(id,i))added++;
+  });
+  var over=ids.length-added-dup;
   closeFAddPick();
   // A new circuit still wants a name, so it opens in the editor.
   if(fresh)openEditor(i);
   renderLists();render(true);
-  toast(added?added+' boulder'+(added===1?'':'s')+' added to '+circuitName(i):
-    'All '+ids.length+' are in '+circuitName(i)+' already');
+  // Three different outcomes, and the count is the point of each of them.
+  toast(!added&&over?circuitName(i)+' is full \u2014 '+MAX_IDS+' boulders is the limit.':
+    !added?'All '+ids.length+' are in '+circuitName(i)+' already':
+    added+' boulder'+(added===1?'':'s')+' added to '+circuitName(i)+
+      (over?', '+over+' did not fit':''));
 };
 
 /* ---- custom circuits: many named circuits, each with its own colour ---- */
@@ -1275,6 +1289,13 @@ DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){
   // toB() carries the crag for every other boulder; a list boulder gets it here.
   if(b.id)b.cragIdx=SECT[BY_ID[b.id][4]][0];});});});
 
+/* A circuit is a day out, and a day is not a thousand boulders. The biggest
+ * built-in list is 100, the walk is routed by a 2-opt that grows with the
+ * square of the stops, and every id rides in the share link. So 100 is the
+ * ceiling, and addToCircuit is the only door - every way in goes through it. */
+var MAX_IDS=100;
+function circuitFull(ci){return CIRCUITS[ci].ids.length>=MAX_IDS;}
+function fullToast(ci){toast(circuitName(ci)+' is full \u2014 '+MAX_IDS+' boulders is the limit.');}
 function newCircuit(name){CIRCUITS.push({n:name||'',ids:[],on:true});return CIRCUITS.length-1;}
 // Where a "+" outside the editor puts a boulder.
 function targetIdx(){
@@ -1285,7 +1306,8 @@ function targetIdx(){
 function addToCircuit(id,ci){
   if(!BY_ID[id])return false;
   if(ci===undefined)ci=targetIdx();
-  var c=CIRCUITS[ci];if(c.ids.indexOf(id)>=0)return false;
+  var c=CIRCUITS[ci];
+  if(c.ids.length>=MAX_IDS||c.ids.indexOf(id)>=0)return false;
   c.ids.push(id);return true;
 }
 function removeFromCircuit(id,ci){
@@ -1455,7 +1477,9 @@ function renderRes(){
 }
 qres.onclick=function(ev){
   var row=ev.target.closest('.res');if(!row||editIdx<0)return;
-  var id=+row.dataset.id, added=inCircuit(id)?!removeFromCircuit(id,editIdx):addToCircuit(id,editIdx);
+  var id=+row.dataset.id;
+  if(!inCircuit(id)&&circuitFull(editIdx)){fullToast(editIdx);return;}
+  var added=inCircuit(id)?!removeFromCircuit(id,editIdx):addToCircuit(id,editIdx);
   renderRes();renderPicked();renderLists();render(false,added?id:null);
 };
 var qT;qEl.oninput=function(){clearTimeout(qT);qT=setTimeout(renderRes,120);};
@@ -1492,7 +1516,12 @@ function targetName(){var i=targetCircuit();return i>=0?circuitName(i):'a new ci
 function inTarget(id){var i=targetCircuit();return i>=0&&CIRCUITS[i].ids.indexOf(id)>=0;}
 function toggleInTarget(id){
   if(inTarget(id))removeFromCircuit(id,targetCircuit());
-  else addToCircuit(id);
+  else{
+    // With no circuit yet addToCircuit makes one, and a new one is never full.
+    var ci=targetCircuit();
+    if(ci>=0&&circuitFull(ci)){fullToast(ci);return;}
+    addToCircuit(id);
+  }
   renderGq();renderRes();renderPicked();renderLists();render(false,id);
 }
 function renderGq(){
@@ -1567,7 +1596,7 @@ document.addEventListener('click',function(ev){
 function renderPicked(){
   if(editIdx<0)return;
   var ids=CIRCUITS[editIdx].ids;
-  ecnt.textContent=ids.length?ids.length+' boulders':'';
+  ecnt.textContent=ids.length?ids.length+' of '+MAX_IDS:'';
   if(!ids.length){myListEl.innerHTML='<div class="note">Search above and tap <b>+</b>, or paste a list of names. This circuit gets its own walking route, and the <b>Share</b> link carries it.</div>';return;}
   // Same order and same numbers as the popups: problem by problem along the
   // walking route. Problems that are not drawn (filtered out, or the circuit is
@@ -1599,7 +1628,7 @@ document.getElementById('myPaste').onclick=function(){pasteBox.hidden=!pasteBox.
 document.getElementById('pasteCancel').onclick=function(){pasteBox.hidden=true;pasteTa.value='';pasteMsg.textContent='';};
 document.getElementById('pasteAdd').onclick=function(){
   if(editIdx<0)return;
-  var rows=parsePasted(pasteTa.value), added=0, dup=0, fixed=[], sugg=[], miss=[];
+  var rows=parsePasted(pasteTa.value), added=0, dup=0, over=0, fixed=[], sugg=[], miss=[];
   rows.forEach(function(r){
     var e=matchName(r.name,r.grade);
     if(!e){
@@ -1608,10 +1637,11 @@ document.getElementById('pasteAdd').onclick=function(){
       else if(f){sugg.push([r.name,f.e]);return;}
       else{miss.push(r.name);return;}
     }
-    if(addToCircuit(e[0],editIdx))added++;else dup++;
+    if(addToCircuit(e[0],editIdx))added++;else if(inCircuit(e[0]))dup++;else over++;
   });
   var msg=['<b>Added '+added+'</b> of '+rows.length+'.'];
   if(dup)msg.push(dup+' already in the circuit.');
+  if(over)msg.push('<b>'+over+' did not fit</b> \u2014 '+MAX_IDS+' boulders is the limit.');
   if(fixed.length)msg.push('Spelling fixed: '+fixed.map(esc).join(', ')+'.');
   if(sugg.length)msg.push('<br>Did you mean: '+sugg.map(function(s){
     return '<button class="mini sug" data-id="'+s[1][0]+'">'+esc(s[0])+' \u2192 '+esc(s[1][1])+' ('+esc(s[1][2])+')</button>';
@@ -1623,6 +1653,7 @@ document.getElementById('pasteAdd').onclick=function(){
 // One tap accepts a suggested name.
 pasteMsg.onclick=function(ev){
   var b=ev.target.closest?ev.target.closest('.sug'):null;if(!b||editIdx<0)return;
+  if(circuitFull(editIdx)){fullToast(editIdx);return;}
   addToCircuit(+b.dataset.id,editIdx);b.parentNode.removeChild(b);
   renderRes();renderPicked();renderLists();render(true);
 };
@@ -2713,6 +2744,7 @@ showTab(!cragsAreDefault()||GORD.some(function(g){return !gradeOn[g];})||charLis
 if(CIRCUITS.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
 renderLists();
 render(true);
+if(TRIMMED)toast('A shared circuit was longer than '+MAX_IDS+' boulders. The first '+MAX_IDS+' were kept.');
 
 /* ---- what is on the ground and is not a boulder ----
  * Kjugekull's own access notice says it: "There is a toilet close by the café."
