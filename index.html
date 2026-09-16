@@ -485,6 +485,7 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
     </div>
     <div id="fbody" class="pane">
       <div class="sec"><div class="hdr"><b class="flex" id="fsum">Filters narrow what the picked circuits show.</b><button class="mini" id="fReset" hidden>Reset</button></div></div>
+      <div class="sec"><div class="hdr"><b>Area</b><button class="mini" id="aAll">All</button><button class="mini" id="aNone">None</button></div><div class="chips" id="areas"></div></div>
       <div class="sec"><div class="hdr"><b>Grade</b><button class="mini" id="gAll">All</button><button class="mini" id="gNone">None</button></div><div class="chips" id="grades"></div></div>
       <div class="sec"><div class="hdr"><b>Character</b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div><div class="chips" id="chars"></div>
         <div class="note">Shows boulders with <b>any</b> selected characteristic (untagged always shown).</div></div>
@@ -804,7 +805,17 @@ DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){
   allGrades[b.grade]=(allGrades[b.grade]||0)+1;
   b.chars.forEach(function(c){allChars[c]=(allChars[c]||0)+1;});});});});
 var charList=Object.keys(allChars).sort(function(a,b){return allChars[b]-allChars[a];});
-var listOn={}, gradeOn={}, charOn={}, minRating=0;
+/* Areas are crags, and a crag is a place you drive to: every block of one is
+ * within a walk of its own parking - at Kjugekull the farthest is 781 m - and
+ * the next crag is kilometres away. So "which crags" is the same question as
+ * "where am I climbing today", and it is the widest cut of the four filters.
+ * Counted over the whole dataset, not over the lists, because the filter
+ * reaches the background too. Biggest first, which puts Kjugekull at the head
+ * where it belongs: it is half of everything there is. */
+var allCrags={};
+ALL.forEach(function(e){var c=SECT[e[4]][0];allCrags[c]=(allCrags[c]||0)+1;});
+var cragList=Object.keys(allCrags).map(Number).sort(function(a,b){return allCrags[b]-allCrags[a];});
+var listOn={}, gradeOn={}, charOn={}, cragOn={}, minRating=0;
 /* A short warm-up circle is a kinder first visit than a hundred boulders, so
  * it is the pick a first visit opens on. Found by title, so the order the
  * lists are built in stays free to change. */
@@ -830,6 +841,7 @@ function restorePicks(){
 }
 GORD.forEach(function(g){gradeOn[g]=true;});
 charList.forEach(function(c){charOn[c]=true;});
+cragList.forEach(function(i){cragOn[i]=true;});
 
 /* The sheet is never away. Collapsed it shows its header at the foot of the
  * screen, and that header is the way in: the grab bar folds the body out and
@@ -855,6 +867,14 @@ function parseHash(){
     var gs=p.g.split('.').filter(Boolean).map(decParam).filter(function(g){return gradeOn[g]!==undefined;});
     if(gs.length){GORD.forEach(function(g){gradeOn[g]=false;});gs.forEach(function(g){gradeOn[g]=true;});}
   }
+  // Areas travel as crag slugs, not numbers, so a crag added to the dataset
+  // later cannot quietly move somebody else's link onto a different forest.
+  if(p.a!==undefined){
+    var slug={};CRAGS.forEach(function(c,i){slug[c[0]]=i;});
+    var as=p.a.split('.').filter(Boolean).map(decParam)
+      .map(function(k){return slug[k];}).filter(function(i){return i!==undefined;});
+    if(as.length){cragList.forEach(function(i){cragOn[i]=false;});as.forEach(function(i){cragOn[i]=true;});}
+  }
   if(p.c!==undefined){
     var cs=p.c.split('.').filter(Boolean).map(decParam).filter(function(c){return charOn[c]!==undefined;});
     if(cs.length){charList.forEach(function(c){charOn[c]=false;});cs.forEach(function(c){charOn[c]=true;});}
@@ -876,6 +896,7 @@ function syncHash(){
   var parts=[],lon=[];DATA.forEach(function(_,i){if(listOn[i])lon.push(i);});parts.push('l='+lon.join('-'));
   if(GORD.some(function(g){return !gradeOn[g];})){var gi=[];GORD.forEach(function(g){if(gradeOn[g])gi.push(encParam(g));});parts.push('g='+gi.join('.'));}
   if(charList.some(function(c){return !charOn[c];})){var ci=[];charList.forEach(function(c){if(charOn[c])ci.push(encParam(c));});parts.push('c='+ci.join('.'));}
+  if(cragList.some(function(i){return !cragOn[i];})){var ai=[];cragList.forEach(function(i){if(cragOn[i])ai.push(encParam(CRAGS[i][0]));});parts.push('a='+ai.join('.'));}
   if(minRating>0)parts.push('r='+minRating);
   var cs=CIRCUITS.filter(function(c){return c.ids.length;});
   if(cs.length)parts.push('x='+cs.map(function(c){
@@ -966,6 +987,14 @@ browseBtn.onclick=function(){
   applyEmphasis();
 };
 
+var areasEl=document.getElementById('areas');
+cragList.forEach(function(i){var c=document.createElement('div');c.className='chip on';c.dataset.a=i;
+  c.innerHTML=esc(CRAGS[i][1])+' <span class="n">'+allCrags[i]+'</span>';
+  c.onclick=function(){cragOn[i]=!cragOn[i];this.classList.toggle('on',cragOn[i]);render(false);};areasEl.appendChild(c);});
+document.getElementById('aAll').onclick=function(){cragList.forEach(function(i){cragOn[i]=true;});syncA();render(false);};
+document.getElementById('aNone').onclick=function(){cragList.forEach(function(i){cragOn[i]=false;});syncA();render(false);};
+function syncA(){[].forEach.call(areasEl.children,function(c){c.classList.toggle('on',cragOn[+c.dataset.a]);});}
+
 var gradesEl=document.getElementById('grades');
 GORD.forEach(function(g){var c=document.createElement('div');c.className='chip on';c.dataset.g=g;
   c.innerHTML=esc(g)+(allGrades[g]?' <span class="n">'+allGrades[g]+'</span>':'');
@@ -1045,14 +1074,19 @@ function updateCSum(){
 function resetFilters(){
   GORD.forEach(function(g){gradeOn[g]=true;});
   charList.forEach(function(c){charOn[c]=true;});
+  cragList.forEach(function(i){cragOn[i]=true;});
   minRating=0;hideDone=false;
-  syncG();syncC();syncR();syncT();render(false);
+  syncA();syncG();syncC();syncR();syncT();render(false);
 }
 // Header text says at a glance whether anything is being filtered away.
 function updateFSum(){
+  var aOff=cragList.filter(function(i){return !cragOn[i];}).length;
   var gOff=GORD.filter(function(g){return !gradeOn[g];}).length;
   var cOff=charList.filter(function(c){return !charOn[c];}).length;
   var bits=[];
+  // One area left on is worth naming; several are only worth counting.
+  if(aOff===cragList.length-1)bits.push(CRAGS[cragList.filter(function(i){return cragOn[i];})[0]][1]+' only');
+  else if(aOff)bits.push(aOff+' of '+cragList.length+' areas off');
   if(gOff)bits.push(gOff+' of '+GORD.length+' grades off');
   if(cOff)bits.push(cOff+' of '+charList.length+' characters off');
   if(minRating)bits.push('min '+minRating+'★');
@@ -1183,7 +1217,9 @@ ALL.forEach(function(e){var s=SECT[e[4]];ID_BY_URL['https://27crags.com/crags/'+
 // Characteristics were only scraped for the boulders in the top-lists.
 var CHARS_BY_URL={};
 DATA.forEach(function(d){d.markers.forEach(function(m){m.b.forEach(function(b){
-  CHARS_BY_URL[b.url]=b.chars;b.id=ID_BY_URL[b.url];});});});
+  CHARS_BY_URL[b.url]=b.chars;b.id=ID_BY_URL[b.url];
+  // toB() carries the crag for every other boulder; a list boulder gets it here.
+  if(b.id)b.cragIdx=SECT[BY_ID[b.id][4]][0];});});});
 
 function newCircuit(name){CIRCUITS.push({n:name||'',ids:[],on:true});return CIRCUITS.length-1;}
 // Where a "+" outside the editor puts a boulder.
@@ -1912,6 +1948,7 @@ function ctxSignature(){
   return [hideDone?1:0,minRating,
     GORD.filter(function(g){return gradeOn[g];}).join(','),
     charList.filter(function(c){return charOn[c];}).join(','),
+    cragList.filter(function(i){return cragOn[i];}).join(','),
     hideDone?tickCount():0].join('|');
 }
 function buildContext(){
@@ -2445,6 +2482,7 @@ walkList.onclick=function(ev){
 };
 
 function boulderVisible(b){
+  if(!cragOn[b.cragIdx]) return false;
   if(hideDone&&b.id&&TICKS[b.id]) return false;
   if(!gradeOn[b.grade]) return false;
   if(Math.round(b.rating==null?0:b.rating) < minRating) return false;
@@ -2610,13 +2648,13 @@ function render(fit,focusId){
 // A big screen has room for the list, so it starts unfolded. A phone starts
 // on the map, with the header of the sheet along the bottom edge.
 if(!isMobile()) openPanel();
-parseHash();syncG();syncC();syncR();syncT();
+parseHash();syncA();syncG();syncC();syncR();syncT();
 // No lists in the link: carry on from the picks of the last visit, otherwise
 // from the default pick.
 if(!/[#&]l=/.test(location.hash))restorePicks();
 // A shared link that narrows something opens on the filters; everything else
 // opens on the walk.
-showTab(GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){return !charOn[c];})||minRating>0?'filters':'walk');
+showTab(cragList.some(function(i){return !cragOn[i];})||GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){return !charOn[c];})||minRating>0?'filters':'walk');
 // A shared circuit is the point of the link: show it alone unless lists were shared too.
 if(CIRCUITS.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
 renderLists();
