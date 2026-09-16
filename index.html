@@ -246,6 +246,16 @@ body.open #pbody{padding-top:4px;padding-bottom:10px}
 /* The rows of the circuit picker are targets, not switches, so the box is
    always filled with the circuit colour and carries a plus. */
 #fAddPick .listrow .box{background:var(--dot);border-color:var(--dot)}
+/* Five chip rows do not fit a phone at once, so every filter is a fold. The
+   header is the handle; the chevron turns over, and a dot beside the word says
+   the section is narrowing something while it is shut. */
+.fold .hdr{cursor:pointer;margin-bottom:0;user-select:none}
+.fold.open .hdr{margin-bottom:8px}
+.fold .fb{display:none}
+.fold.open .fb{display:block}
+.fold .tw{flex:none;display:flex;color:var(--ink3);transition:transform .15s ease}
+.fold.open .tw{transform:rotate(180deg)}
+.fold .hdr .tdot{display:inline-block;margin-left:7px;vertical-align:middle}
 .lgroup{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);margin:10px 0 2px}
 /* The search sits above the tabs and reaches every boulder, picked or not. */
 #gqres{margin-top:2px}
@@ -485,14 +495,18 @@ a.mini,#sheet a.mini,.leaflet-popup-content a.mini{color:var(--ink);text-decorat
     </div>
     <div id="fbody" class="pane">
       <div class="sec"><div class="hdr"><b class="flex" id="fsum">Filters narrow what the picked circuits show.</b><button class="mini" id="fReset" hidden>Reset</button></div></div>
-      <div class="sec"><div class="hdr"><b>Area</b><button class="mini" id="aAll">All</button><button class="mini" id="aNone">None</button></div><div class="chips" id="areas"></div></div>
-      <div class="sec"><div class="hdr"><b>Grade</b><button class="mini" id="gAll">All</button><button class="mini" id="gNone">None</button></div><div class="chips" id="grades"></div></div>
-      <div class="sec"><div class="hdr"><b>Character</b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div><div class="chips" id="chars"></div>
-        <div class="note">Shows boulders with <b>any</b> selected characteristic (untagged always shown).</div></div>
-      <div class="sec"><div class="hdr"><b>Min rating</b></div><div class="chips" id="ratings"></div></div>
-      <div class="sec"><div class="hdr"><b>Done</b><button class="mini" id="tClear" hidden>Clear all</button></div>
-        <div class="chips" id="doneChips"></div>
-        <div class="note" id="tNote"></div></div>
+      <div class="sec fold" data-f="area"><div class="hdr"><b>Area<span class="tdot" hidden></span></b><button class="mini" id="aAll">All</button><button class="mini" id="aNone">None</button></div>
+        <div class="fb"><div class="chips" id="areas"></div></div></div>
+      <div class="sec fold" data-f="grade"><div class="hdr"><b>Grade<span class="tdot" hidden></span></b><button class="mini" id="gAll">All</button><button class="mini" id="gNone">None</button></div>
+        <div class="fb"><div class="chips" id="grades"></div></div></div>
+      <div class="sec fold" data-f="char"><div class="hdr"><b>Character<span class="tdot" hidden></span></b><button class="mini" id="cAll">All</button><button class="mini" id="cNone">None</button></div>
+        <div class="fb"><div class="chips" id="chars"></div>
+        <div class="note">Shows boulders with <b>any</b> selected characteristic (untagged always shown).</div></div></div>
+      <div class="sec fold" data-f="rating"><div class="hdr"><b>Min rating<span class="tdot" hidden></span></b></div>
+        <div class="fb"><div class="chips" id="ratings"></div></div></div>
+      <div class="sec fold" data-f="done"><div class="hdr"><b>Done<span class="tdot" hidden></span></b><button class="mini" id="tClear" hidden>Clear all</button></div>
+        <div class="fb"><div class="chips" id="doneChips"></div>
+        <div class="note" id="tNote"></div></div></div>
       <!-- The filters say which boulders you want today; this keeps that answer. -->
       <div class="sec">
         <button class="mini pri wide" id="fAdd"></button>
@@ -636,7 +650,8 @@ var ICON_PATH={
   plus:'M10 4.5v11M4.5 10h11',
   close:'M5.5 5.5l9 9M14.5 5.5l-9 9',
   pencil:'M12.7 3.7l3.6 3.6-8.5 8.5H4.2v-3.6z',
-  tick:'M10 2.8a7.2 7.2 0 100 14.4 7.2 7.2 0 000-14.4zM6.4 10.2l2.5 2.5 4.7-5.1'
+  tick:'M10 2.8a7.2 7.2 0 100 14.4 7.2 7.2 0 000-14.4zM6.4 10.2l2.5 2.5 4.7-5.1',
+  chev:'M5.8 8.2l4.2 4.2 4.2-4.2'
 };
 function icon(n){return '<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="'+ICON_PATH[n]+'"/></svg>';}
 function stars(r,noNum){if(r==null)return '';var full=Math.round(r),s='';for(var i=0;i<3;i++)s+=(i<full?'★':'☆');
@@ -815,7 +830,17 @@ var charList=Object.keys(allChars).sort(function(a,b){return allChars[b]-allChar
 var allCrags={};
 ALL.forEach(function(e){var c=SECT[e[4]][0];allCrags[c]=(allCrags[c]||0)+1;});
 var cragList=Object.keys(allCrags).map(Number).sort(function(a,b){return allCrags[b]-allCrags[a];});
+// Kjugekull alone: the area the map opens on, and the crag a pasted list of
+// names is read against first.
+var KJU_IDX=-1;CRAGS.forEach(function(c,i){if(c[0]==='kjugekull')KJU_IDX=i;});
 var listOn={}, gradeOn={}, charOn={}, cragOn={}, minRating=0;
+/* The map opens on Kjugekull alone. It is half the dataset and the reason the
+ * app exists, and a first visit that opened on 3141 boulders spread over 40 km
+ * of road would not be an answer to anything. The other 13 crags are one tap
+ * away, and Reset comes back here. Written once, so the reset and the "is
+ * anything narrowed" test cannot drift apart. */
+function defaultCrags(){cragList.forEach(function(i){cragOn[i]=(i===KJU_IDX);});}
+function cragsAreDefault(){return cragList.every(function(i){return cragOn[i]===(i===KJU_IDX);});}
 /* A short warm-up circle is a kinder first visit than a hundred boulders, so
  * it is the pick a first visit opens on. Found by title, so the order the
  * lists are built in stays free to change. */
@@ -841,7 +866,7 @@ function restorePicks(){
 }
 GORD.forEach(function(g){gradeOn[g]=true;});
 charList.forEach(function(c){charOn[c]=true;});
-cragList.forEach(function(i){cragOn[i]=true;});
+defaultCrags();
 
 /* The sheet is never away. Collapsed it shows its header at the foot of the
  * screen, and that header is the way in: the grab bar folds the body out and
@@ -875,6 +900,11 @@ function parseHash(){
       .map(function(k){return slug[k];}).filter(function(i){return i!==undefined;});
     if(as.length){cragList.forEach(function(i){cragOn[i]=false;});as.forEach(function(i){cragOn[i]=true;});}
   }
+  /* A link that says nothing about areas means every area. That is what every
+   * link made before this filter existed meant, and two of the lists are not
+   * at Kjugekull at all - reading those as "Kjugekull only" would open them
+   * empty. Only a visit with no link at all takes the default. */
+  if(p.a===undefined)cragList.forEach(function(i){cragOn[i]=true;});
   if(p.c!==undefined){
     var cs=p.c.split('.').filter(Boolean).map(decParam).filter(function(c){return charOn[c]!==undefined;});
     if(cs.length){charList.forEach(function(c){charOn[c]=false;});cs.forEach(function(c){charOn[c]=true;});}
@@ -1040,6 +1070,28 @@ function syncT(){
 /* ---- two folds: picking circuits, and filtering what they show ---- */
 var fbody=document.getElementById('fbody'), fsum=document.getElementById('fsum'),
     fReset=document.getElementById('fReset'), fbadge=document.getElementById('fbadge');
+
+/* ---- each filter section shuts ----
+ * Area, grade and character are five, five and four rows of chips, and all of
+ * them at once is more page than a phone has. Every section shuts instead, so
+ * the whole of the filters is five words and the button under them, and you
+ * open the one you came for. A shut section keeps its dot, so it can never
+ * hide that it is narrowing something. What you open stays open next time. */
+var FOLD_KEY='kjuge.folds', foldOn={}, fdot={};
+try{(JSON.parse(localStorage.getItem(FOLD_KEY))||[]).forEach(function(k){foldOn[k]=true;});}catch(e){}
+[].forEach.call(fbody.querySelectorAll('.fold'),function(f){
+  var k=f.dataset.f, hdr=f.querySelector('.hdr');
+  hdr.insertAdjacentHTML('afterbegin','<span class="tw">'+icon('chev')+'</span>');
+  fdot[k]=f.querySelector('.tdot');
+  f.classList.toggle('open',!!foldOn[k]);
+  hdr.onclick=function(ev){
+    // All, None and Clear all sit in the header but are not the handle.
+    if(ev.target.closest('button'))return;
+    foldOn[k]=!f.classList.contains('open');
+    f.classList.toggle('open',foldOn[k]);
+    try{localStorage.setItem(FOLD_KEY,JSON.stringify(Object.keys(foldOn).filter(function(n){return foldOn[n];})));}catch(e){}
+  };
+});
 var cbody=document.getElementById('cbody'), cbadge=document.getElementById('cbadge');
 var wbody=document.getElementById('wbody'), wsum=document.getElementById('wsum'),
     walkList=document.getElementById('walkList'), accessSec=document.getElementById('accessSec'),
@@ -1074,19 +1126,20 @@ function updateCSum(){
 function resetFilters(){
   GORD.forEach(function(g){gradeOn[g]=true;});
   charList.forEach(function(c){charOn[c]=true;});
-  cragList.forEach(function(i){cragOn[i]=true;});
+  defaultCrags();
   minRating=0;hideDone=false;
   syncA();syncG();syncC();syncR();syncT();render(false);
 }
 // Header text says at a glance whether anything is being filtered away.
 function updateFSum(){
-  var aOff=cragList.filter(function(i){return !cragOn[i];}).length;
+  var aOn=cragList.filter(function(i){return cragOn[i];}), aSet=!cragsAreDefault();
   var gOff=GORD.filter(function(g){return !gradeOn[g];}).length;
   var cOff=charList.filter(function(c){return !charOn[c];}).length;
   var bits=[];
-  // One area left on is worth naming; several are only worth counting.
-  if(aOff===cragList.length-1)bits.push(CRAGS[cragList.filter(function(i){return cragOn[i];})[0]][1]+' only');
-  else if(aOff)bits.push(aOff+' of '+cragList.length+' areas off');
+  /* Areas read by what is on, not by what is off: the default is one crag, so
+   * "13 of 14 off" would be the ordinary state and would say nothing. */
+  if(aSet)bits.push(!aOn.length?'no areas':aOn.length===1?CRAGS[aOn[0]][1]+' only':
+    aOn.length===cragList.length?'every area':aOn.length+' areas');
   if(gOff)bits.push(gOff+' of '+GORD.length+' grades off');
   if(cOff)bits.push(cOff+' of '+charList.length+' characters off');
   if(minRating)bits.push('min '+minRating+'★');
@@ -1096,6 +1149,9 @@ function updateFSum(){
   fsum.textContent=narrowed?bits.join(' · '):'Filters narrow what the picked circuits show.';
   fbadge.hidden=!narrowed;
   fReset.hidden=!narrowed;
+  // A shut fold still says whether it is working.
+  fdot.area.hidden=!aSet;fdot.grade.hidden=!gOff;fdot.char.hidden=!cOff;
+  fdot.rating.hidden=!minRating;fdot.done.hidden=!hideDone;
   updateFAdd();
 }
 
@@ -1175,8 +1231,6 @@ var PROBNUM={};
 var HIT_BY_ID={};
 var editIdx=-1;          // circuit open in the editor, -1 = none
 var BY_ID={};ALL.forEach(function(e){BY_ID[e[0]]=e;});
-// Kjugekull alone: a pasted list of names is read against this first.
-var KJU_IDX=-1;CRAGS.forEach(function(c,i){if(c[0]==='kjugekull')KJU_IDX=i;});
 function atKjugekull(e){return SECT[e[4]][0]===KJU_IDX;}
 var KJU_ALL=ALL.filter(atKjugekull);
 
@@ -2654,7 +2708,7 @@ parseHash();syncA();syncG();syncC();syncR();syncT();
 if(!/[#&]l=/.test(location.hash))restorePicks();
 // A shared link that narrows something opens on the filters; everything else
 // opens on the walk.
-showTab(cragList.some(function(i){return !cragOn[i];})||GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){return !charOn[c];})||minRating>0?'filters':'walk');
+showTab(!cragsAreDefault()||GORD.some(function(g){return !gradeOn[g];})||charList.some(function(c){return !charOn[c];})||minRating>0?'filters':'walk');
 // A shared circuit is the point of the link: show it alone unless lists were shared too.
 if(CIRCUITS.length&&!/[#&]l=/.test(location.hash))DATA.forEach(function(_,i){listOn[i]=false;});
 renderLists();
